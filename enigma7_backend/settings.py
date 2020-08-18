@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
+    #users
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -123,6 +125,8 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.profile',
 ]
 
+#custom user model
+AUTH_USER_MODEL = 'users.Users'
 
 
 # Database
