@@ -46,6 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Custom
+
+    'game',
+
     # Oauth
 
     'oauth2_provider',
