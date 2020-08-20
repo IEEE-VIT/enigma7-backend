@@ -51,28 +51,28 @@ INSTALLED_APPS = [
     # Custom
 
     'game',
+    'users',
 
-    # Custom
-
-    'game',
 
     # Oauth
+
     'dj_rest_auth',
     'allauth',
 
     #allauth
+
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
 
-    #users
-    'users',
 
     #rest_framework
+
     'rest_framework',
 
     #social_oauth
+    
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
 
