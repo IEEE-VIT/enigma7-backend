@@ -49,14 +49,18 @@ INSTALLED_APPS = [
     # Custom
 
     'game',
+    'users',
 
     # Oauth
 
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
-    #users
-    'users',
+
+    # Rest Framework
+
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
