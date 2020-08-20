@@ -1,2 +1,7 @@
 .env
+*.pyc
+
 enigma7_backend/__pycache__
+game/__pycache__
+users/__pycache__
+
