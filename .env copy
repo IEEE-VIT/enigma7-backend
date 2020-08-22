@@ -1,0 +1,30 @@
+DJANGO_SECRET_KEY='b+8g=9v-2$(i))!y%n+0s5)5cmrw&sn+ao=0ig2oqrgqfy9#mf'
+ALLOWED_HOSTS=127.0.0.1,localhost
+DB_NAME=enigma
+DB_PASSWORD=psql1234
+DB_PORT=5432
+DB_USER=postgres
+DB_HOST=localhost
+GOOGLE_OAUTH2_KEY=55484635453-c46tes445anbidhb2qnmb2qs618mvpni.apps.googleusercontent.com
+GOOGLE_OAUTH2_SECRET=TNQtXTaZqzRiK0rg9UHkUsaZ
+
+https://accounts.google.com/o/oauth2/v2/auth?
+ scope=email+profile&
+ access_type=offline&
+ include_granted_scopes=true&
+ response_type=code&
+ state=state_parameter_passthrough_value&
+ redirect_uri=http://127.0.0.1:8000/&
+ client_id=55484635453-c46tes445anbidhb2qnmb2qs618mvpni.apps.googleusercontent.com
+
+
+ 4/3QE25yIeGsJtRqeDrcdXaB-eWfMuMzYpE8boTsXwCzabEHwyJVcd_dZ6gZvpRd9UEwnc6MNIpTqE4CpjlgJt0dE
+
+
+
+
+ https://api.instagram.com/oauth/authorize
+  ?client_id=684477648739411
+  &redirect_uri=https://socialsizzle.herokuapp.com/auth/
+  &scope=user_profile
+  &response_type=code
