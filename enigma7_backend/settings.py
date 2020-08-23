@@ -52,6 +52,10 @@ INSTALLED_APPS = [
 
     'game',
 
+    # Custom
+
+    'game',
+
     # Oauth
     'dj_rest_auth',
     'allauth',
