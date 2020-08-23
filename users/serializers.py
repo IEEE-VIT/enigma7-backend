@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import *
 
 
-class User_Serializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = (
@@ -18,7 +18,7 @@ class User_Serializer(serializers.ModelSerializer):
             "question_answered",
         )
 
-class Username_Serialiser(serializers.ModelSerializer):
+class UsernameSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = (

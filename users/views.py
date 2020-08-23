@@ -9,39 +9,25 @@ from django.shortcuts import get_object_or_404
 from .serializers import *
 import json
 from django.shortcuts import render, redirect, get_object_or_404
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.instagram.views import InstagramOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from dj_rest_auth.models import TokenModel
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 
 
-class User_ViewSet(generics.RetrieveAPIView): #  handling GET request by inherting Mixins for single object 
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-    queryset = Users.objects.all()
-    serializer_class = User_Serializer
-    lookup_field = 'id'
+class GoogleLogin(SocialLoginView):
+    permission_classes = ()
+    adapter_class = GoogleOAuth2Adapter
+    token_model = TokenModel
+    callback_url = 'http://127.0.0.1:8000/'
+    client_class = OAuth2Client
 
-    def get_object(self , *args , **kwargs):
-        kwargs = self.kwargs
-        user_data = Users.objects.get(id = kwargs['pk'])
-        return user_data
-
-
-class Username_ViewSet(mixins.UpdateModelMixin, generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-    serializer_class = Username_Serialiser
-    lookup_field = 'id'
-    model = Users
-
-    #to get the queryset
-
-    def get_queryset(self):
-        queryset = self.model.objects.all()
-        return queryset
-
-    #patch username request with partial update
-
-    def patch(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', True)
-        serializer = Username_Serialiser(Users, data = request.data, partial = True)
-        instance = self.get_object() 
-        return self.partial_update(request, *args, **kwargs)
-
+class InstagramLogin(SocialLoginView):
+    permission_classes = ()
+    adapter_class = InstagramOAuth2Adapter    
+    token_model = TokenModel
+    callback_url = 'https://127.0.0.1:8000/'
+    client_class = OAuth2Client
+    
