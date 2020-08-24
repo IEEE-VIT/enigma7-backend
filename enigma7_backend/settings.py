@@ -48,6 +48,10 @@ INSTALLED_APPS = [
     'django.contrib.sites',
 
 
+    # Custom
+
+    'game',
+
     # Oauth
     'dj_rest_auth',
     'allauth',
