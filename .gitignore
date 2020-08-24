@@ -2,8 +2,4 @@
 .*pyc
 
 enigma7_backend/__pycache__
-<<<<<<< HEAD
 game/__pycache__
-=======
-game/__pycache__
->>>>>>> 9377b44... final
