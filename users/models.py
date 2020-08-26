@@ -6,7 +6,7 @@ from django.contrib.auth.models import (
 from .managers import *
 
 class Users(AbstractUser):
-    username=models.CharField(max_length=255,unique=True,null=False)
+    username=models.CharField(max_length=255, null= False)
     email=models.EmailField(max_length=255,unique=True)
     points=models.IntegerField(default=0)
     rank=models.IntegerField(null=True)
@@ -17,8 +17,8 @@ class Users(AbstractUser):
     objects = UserManager()
     
     EMAIL_FIELD = 'email'
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
 
 

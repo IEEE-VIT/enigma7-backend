@@ -1,5 +1,5 @@
 .env
-.*pyc
+*.pyc
 
 enigma7_backend/__pycache__
 game/__pycache__

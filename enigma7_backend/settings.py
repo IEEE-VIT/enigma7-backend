@@ -51,10 +51,7 @@ INSTALLED_APPS = [
     # Custom
 
     'game',
-
-    # Custom
-
-    'game',
+    'users',
 
     # Oauth
     'dj_rest_auth',
@@ -65,9 +62,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
-    #users
-    'users',
 
     #rest_framework
     'rest_framework',
@@ -114,15 +108,16 @@ WSGI_APPLICATION = 'enigma7_backend.wsgi.application'
 # Oauth and Rest framework ( May shift to new file )
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication', #TokenAuthentication
-    ],
- 
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'rest_framework.authentication.TokenAuthentication',
+        # for browsable api view usage
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
 }
-
 
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIALACCOUNT_PROVIDERS = {
@@ -137,6 +132,9 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
 REST_AUTH_SERIALIZERS = {
     'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
     'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
@@ -146,6 +144,12 @@ REST_AUTH_SERIALIZERS = {
 #custom user model
 AUTH_USER_MODEL = 'users.Users'
 
+#to avoid username field
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_USERNAME_REQUIRED = False
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

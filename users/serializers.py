@@ -18,10 +18,12 @@ class UserSerializer(serializers.ModelSerializer):
             "question_answered",
         )
 
-class UsernameSerialiser(serializers.ModelSerializer):
+class UsernameSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
         fields = (
             'id', 
             'username'
         )
+        
+        
