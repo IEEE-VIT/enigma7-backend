@@ -5,7 +5,7 @@ from django.contrib.auth.models import (
 )
 from .managers import *
 
-class Users(AbstractUser):
+class User(AbstractUser):
     username=models.CharField(max_length=255, null= False)
     email=models.EmailField(max_length=255,unique=True)
     points=models.IntegerField(default=0)
