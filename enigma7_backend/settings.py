@@ -142,7 +142,7 @@ REST_AUTH_SERIALIZERS = {
 }
 
 #custom user model
-AUTH_USER_MODEL = 'users.Users'
+AUTH_USER_MODEL = 'users.User'
 
 #to avoid username field
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

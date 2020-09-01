@@ -32,13 +32,13 @@ class InstagramLogin(SocialLoginView):
 @api_view(['GET'])
 def user_detail_view(request):
     if request.method == 'GET': 
-        serializer = UserSerializer(request.user)
+        serializer = Userserializer(request.user)
     return Response(serializer.data)
 
 
 @api_view(['PATCH'])
 def edit_username(request):
-    if Users.objects.filter(username = request.data['username']).exists():
+    if User.objects.filter(username = request.data['username']).exists():
         return Response({"error":"User with this username already exists"})
     else:
         serializer = UsernameSerializer(
