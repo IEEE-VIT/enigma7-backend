@@ -37,21 +37,21 @@ class CustomLoginView(LoginView):
         response = Response({**serializer.data, **check}, status=status.HTTP_200_OK)
         return response        
 
+class CustomSocialLoginView(CustomLoginView):
+    serializer_class = SocialLoginSerializer
 
 
-class GoogleLogin(CustomLoginView):
+class GoogleLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = GoogleOAuth2Adapter
-    serializer_class = SocialLoginSerializer
     token_model = TokenModel
     callback_url = 'http://127.0.0.1:8000/'
     client_class = OAuth2Client
 
 
-class InstagramLogin(CustomLoginView):
+class InstagramLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = InstagramOAuth2Adapter
-    serializer_class = SocialLoginSerializer    
     token_model = TokenModel
     callback_url = 'https://127.0.0.1:8000/'
     client_class = OAuth2Client
