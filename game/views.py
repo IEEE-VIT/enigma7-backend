@@ -61,8 +61,13 @@ class Answerview(APIView):
             else:
                 self.request.user.points += CORRECT_POINTS-HINT_COST
 
-            self.request.user.userstatus.hint_used = False
             self.request.user.question_answered += 1
+
+            self.request.user.userstatus.hint_used = False
+            self.request.userstatus.hint_powerup = False
+            self.request.userstatus.skip_powerup = False
+            self.request.userstatus.accept_close_answer = False
+
             self.request.user.save()
 
             return Response({'answer' : True} , status=200)
@@ -100,3 +105,109 @@ class Hintview(APIView):
         request.user.save()
         serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
         return Response(serializer.data)
+
+
+class PowerupHintView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self , request , *args , **kwargs):
+
+        if request.user.userstatus.hint_used or request.user.userstatus.hint_powerup:
+            return Response({'detail' : 'You have already taken a hint .'})
+
+        else:
+            if request.user.xp >= HINT_XP: # Hint xp
+
+                serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+                request.user.xp -= HINT_XP
+                request.user.userstatus.hint_powerup = True
+
+                request.user.save()
+
+                response = dict(serializer.data)
+                response.update({'status' : request.user.userstatus.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.userstatus.hint_powerup})
+
+                return Response(response , status=200)
+            else:
+                resp = {"detail" : "Insufficient Xp" , 'status' : request.user.userstatus.hint_powerup}
+                return Response(resp , status=200)
+
+
+class PowerupSkipView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request , *args , **kwargs):
+
+        if request.user.xp >= SKIP_XP:
+
+            request.user.question_id += 1
+            request.user.xp -= SKIP_XP
+
+            request.user.userstatus.hint_used = False
+            request.userstatus.hint_powerup = False
+            request.userstatus.skip_powerup = False
+            request.userstatus.accept_close_answer = False
+
+            request.user.save()
+            return Response({'question_id' : request.user.question_id , 'status' : request.user.userstatus.skip_powerup , 'xp' : request.user.xp} , status=200)
+        else:
+            resp = {"detail" : "Insufficient Xp" , "status" : request.user.userstatus.skip_powerup}
+            return Response(resp , status=200)
+
+
+class PowerupCloseAnswerView(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, *args , **kwargs):
+
+        if self.request.user.xp >= ACCEPT_CLOSE_XP:
+
+            self.request.user.userstatus.accept_close_answer = True
+            
+            ques_id = self.request.user.question_id 
+            user_answer = args[0].data['answer']
+            question = get_object_or_404(Question , id = int(ques_id))
+
+            if self._isCloseAnswer(question , user_answer) or self._isAnswer(question , user_answer):
+                
+                if self.request.user.userstatus.hint_used: # If user takes up both ( Close answer powerup and hint )
+                    self.request.user.points += CORRECT_POINTS-HINT_COST
+                    self.request.user.userstatus.hint_used = False        
+                else:
+                    self.request.user.points += CORRECT_POINTS
+            else:
+                response = {'detail' : "The answer isn't a close answer"}
+                return Response(response , status=200)
+                
+            self.request.user.question_id += 1
+            self.request.user.question_answered += 1
+            self.request.user.xp -= ACCEPT_CLOSE_XP
+
+            self.request.userstatus.hint_used = False
+            self.request.userstatus.hint_powerup = False
+            self.request.userstatus.skip_powerup = False
+            self.request.userstatus.accept_close_answer = False
+
+
+            self.request.user.save()
+
+            return Response({'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.userstatus.accept_close_answer} , status=200)
+        else:
+            resp = {"detail" : "Insufficient Xp" , "status" : self.request.user.userstatus.accept_close_answer}
+            return Response(resp , status=200)
+
+    def _isCloseAnswer(self,question,answer):
+        if answer.lower() in map(lambda x : x.lower() ,question.close_answers):
+            return True
+        return False
+
+    def _isAnswer(self , question , answer):
+        if answer.lower() in map(lambda x : x.lower() ,question.answer):
+            return True
+        return False
