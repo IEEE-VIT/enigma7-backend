@@ -52,22 +52,26 @@ INSTALLED_APPS = [
     # Custom
 
     'game',
-    'users',
+    'users.apps.UsersConfig', # used for signals.py
 
     # Oauth
+
     'dj_rest_auth',
     'allauth',
 
     #allauth
+
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
 
     #rest_framework
+
     'rest_framework',
 
     #social_oauth
+    
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
 
@@ -143,7 +147,7 @@ REST_AUTH_SERIALIZERS = {
 }
 
 #custom user model
-AUTH_USER_MODEL = 'users.Users'
+AUTH_USER_MODEL = 'users.User'
 
 #to avoid username field
 ACCOUNT_AUTHENTICATION_METHOD = 'email'

@@ -1,5 +1,3 @@
 .env
 *.pyc
 enigma7_backend/local_settings.py
-enigma7_backend/__pycache__
-game/__pycache__
