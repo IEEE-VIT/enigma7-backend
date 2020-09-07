@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly , IsAuthenticat
 from rest_framework.response import Response
 
 import json
+import re
 
 
 CORRECT_POINTS = 10
@@ -53,31 +54,35 @@ class Answerview(APIView):
         user_answer = args[0].data['answer']
         question = get_object_or_404(Question , id = int(ques_id))
         self.request.user.no_of_attempts += 1
-    
-        if self._isAnswer(question , user_answer):
 
-            if self.request.user.userstatus.hint_used == False:   # hint is not taken
-                self.request.user.points += CORRECT_POINTS
+        if self._isValid(user_answer):
+            if self._isAnswer(question , user_answer):
+
+                if self.request.user.userstatus.hint_used == False:   # hint is not taken
+                    self.request.user.points += CORRECT_POINTS
+                else:
+                    self.request.user.points += CORRECT_POINTS-HINT_COST
+
+                self.request.user.question_answered += 1
+
+                self.request.user.userstatus.hint_used = False
+                self.request.userstatus.hint_powerup = False
+                self.request.userstatus.skip_powerup = False
+                self.request.userstatus.accept_close_answer = False
+
+                self.request.user.save()
+
+                return Response({'answer' : True} , status=200)
+
+            elif self._isCloseAnswer(question , user_answer):
+                return Response({'answer' : False , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
+
             else:
-                self.request.user.points += CORRECT_POINTS-HINT_COST
-
-            self.request.user.question_answered += 1
-
-            self.request.user.userstatus.hint_used = False
-            self.request.userstatus.hint_powerup = False
-            self.request.userstatus.skip_powerup = False
-            self.request.userstatus.accept_close_answer = False
-
-            self.request.user.save()
-
-            return Response({'answer' : True} , status=200)
-
-        elif self._isCloseAnswer(question , user_answer):
-            return Response({'answer' : False , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
-
+                resp = {'answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
+                return Response(resp , status=200)
         else:
-            resp = {'answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
-            return Response(resp , status=200)
+            resp = {"detail" : "Special characters are not allowed"}
+            return Response(resp , status=400)
 
     def _isAnswer(self , question , answer):
         if answer.lower() in map(lambda x : x.lower() ,question.answer):
@@ -89,6 +94,11 @@ class Answerview(APIView):
             return True
         return False
 
+    def _isValid(self , user_response): 
+        string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        if string_check.search(user_response) == None: 
+            return True
+        return False
 
 
 class Hintview(APIView):
@@ -209,5 +219,11 @@ class PowerupCloseAnswerView(APIView):
 
     def _isAnswer(self , question , answer):
         if answer.lower() in map(lambda x : x.lower() ,question.answer):
+            return True
+        return False
+
+    def _isValid(self , user_response): 
+        string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        if string_check.search(user_response) == None: 
             return True
         return False
