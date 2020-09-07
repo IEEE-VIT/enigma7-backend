@@ -25,7 +25,7 @@ class User(AbstractUser):
 
 
     def __str__(self):
-	    return self.username
+	    return self.email
 
 
 class UserStatus(models.Model):
