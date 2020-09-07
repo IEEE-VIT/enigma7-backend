@@ -45,17 +45,21 @@ class GoogleLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = GoogleOAuth2Adapter
     token_model = TokenModel
-    callback_url = 'http://127.0.0.1:8000/'
     client_class = OAuth2Client
-
-
+    def post(self,request, *args, **kwargs):
+        url = self.request.data.get('callback_url')
+        self.callback_url = url
+        return super(GoogleLogin, self).post(request, *args, **kwargs)
+    
 class InstagramLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = InstagramOAuth2Adapter
     token_model = TokenModel
-    callback_url = 'https://127.0.0.1:8000/'
     client_class = OAuth2Client
-    
+    def post(self,request, *args, **kwargs):
+        url = self.request.data.get('callback_url')
+        self.callback_url = url
+        return super(InstagramLogin, self).post(request, *args, **kwargs)
 
 @api_view(['GET'])
 def user_detail_view(request):
