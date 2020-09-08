@@ -63,9 +63,20 @@ class InstagramLogin(CustomSocialLoginView):
 
 @api_view(['GET'])
 def user_detail_view(request):
-    if request.method == 'GET': 
-        serializer = Userserializer(request.user)
-    return Response(serializer.data)
+    if request.method == 'GET':
+
+        users = User.objects.order_by('-points')[:25]
+        users_list = _split(users)
+        
+        for counter in range(0,len(users_list)):
+            if users_list[counter].username == request.user.username:
+                rank_dict = {'rank' : counter + 1}
+                break
+    
+        serializer = dict(Userserializer(request.user).data)
+        serializer.update(rank_dict)
+        
+    return Response(serializer)
 
 
 @api_view(['PATCH'])
@@ -82,3 +93,14 @@ def edit_username(request):
         return Response(serializer.data)
 
 
+# Helper functions
+
+def _split(array):
+    array = list(array)
+    for counter in range(0,len(array)):
+        if not counter + 1 == len(array): # rule out , index exceed error
+            if array[counter].points == array[counter + 1].points: # if same points
+                if array[counter + 1].userstatus.last_answered_ts < array[counter].userstatus.last_answered_ts: # if later object has reached timestamp earlier
+                    array[counter + 1] , array[counter] = array[counter] , array[counter + 1] # swapping
+
+    return array

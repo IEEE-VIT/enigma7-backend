@@ -16,7 +16,6 @@ class Userserializer(serializers.ModelSerializer):
             "email",
             "question_answered",
             "points",
-            "rank",
             "question_answered",
         )
 
