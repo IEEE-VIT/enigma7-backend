@@ -34,6 +34,7 @@ class CustomLoginView(LoginView):
             check = {"username_exists": False}
         else:
             check = {"username_exists": True}
+        print(check)    
         response = Response({**serializer.data, **check}, status=status.HTTP_200_OK)
         return response        
 
@@ -49,8 +50,8 @@ class GoogleLogin(CustomSocialLoginView):
     def post(self,request, *args, **kwargs):
         url = self.request.data.get('callback_url')
         self.callback_url = url
-        super(GoogleLogin, self).post(request, *args, **kwargs)
-
+        return super(GoogleLogin, self).post(request, *args, **kwargs)
+    
 class InstagramLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = InstagramOAuth2Adapter
@@ -59,7 +60,8 @@ class InstagramLogin(CustomSocialLoginView):
     def post(self,request, *args, **kwargs):
         url = self.request.data.get('callback_url')
         self.callback_url = url
-        super(GoogleLogin, self).post(request, *args, **kwargs)
+        return super(InstagramLogin, self).post(request, *args, **kwargs)
+        return Response
 
 @api_view(['GET'])
 def user_detail_view(request):
