@@ -34,7 +34,6 @@ class CustomLoginView(LoginView):
             check = {"username_exists": False}
         else:
             check = {"username_exists": True}
-        print(check)    
         response = Response({**serializer.data, **check}, status=status.HTTP_200_OK)
         return response        
 
