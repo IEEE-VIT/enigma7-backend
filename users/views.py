@@ -60,7 +60,6 @@ class InstagramLogin(CustomSocialLoginView):
         url = self.request.data.get('callback_url')
         self.callback_url = url
         return super(InstagramLogin, self).post(request, *args, **kwargs)
-        return Response
 
 @api_view(['GET'])
 def user_detail_view(request):
