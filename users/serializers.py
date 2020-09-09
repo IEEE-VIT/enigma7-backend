@@ -11,13 +11,11 @@ class Userserializer(serializers.ModelSerializer):
         fields = (
             "id",
             "username",
-            "first_name",
-            "last_name",
             "email",
-            "question_answered",
             "points",
-            "rank",
             "question_answered",
+            "xp",
+            "no_of_hints_used"
         )
 
 class UsernameSerializer(serializers.ModelSerializer):
