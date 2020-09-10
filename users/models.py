@@ -16,6 +16,7 @@ class User(AbstractUser):
     no_of_attempts=models.IntegerField(default=0)
     question_id=models.IntegerField(default=1)
     xp = models.IntegerField(default = 0 , null = False , blank = False)
+    first_attempt = models.DateTimeField(null = True)
     objects = UserManager()
     
     EMAIL_FIELD = 'email'
