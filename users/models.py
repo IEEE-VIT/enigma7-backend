@@ -10,7 +10,6 @@ class User(AbstractUser):
     username=models.CharField(max_length=255, null= False)
     email=models.EmailField(max_length=255,unique=True)
     points=models.IntegerField(default=0)
-    rank=models.IntegerField(null=True)
     question_answered=models.IntegerField(default=0)    
     no_of_hints_used=models.IntegerField(default=0)
     no_of_attempts=models.IntegerField(default=0)
@@ -35,6 +34,7 @@ class UserStatus(models.Model):
     hint_powerup = models.BooleanField(default=False)
     skip_powerup = models.BooleanField(default=False)
     accept_close_answer = models.BooleanField(default=False)
+    last_answered_ts = models.DateTimeField(null = True)
 
 
     def __str__(self):

@@ -1,8 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 
-from .serializers import QuestionSerializer , HintSerializer
-from .models import Question 
+from .serializers import QuestionSerializer , HintSerializer , LeaderBoardSerializers
+from .models import Question
+from users.models import User
 
 from rest_framework import generics , mixins
 from rest_framework.views import APIView
@@ -12,7 +13,7 @@ from rest_framework.response import Response
 
 import json
 import re
-
+from datetime import datetime
 
 CORRECT_POINTS = 10
 HINT_COST = 5
@@ -69,6 +70,7 @@ class Answerview(APIView):
                 self.request.userstatus.hint_powerup = False
                 self.request.userstatus.skip_powerup = False
                 self.request.userstatus.accept_close_answer = False
+                self.request.userstatus.last_answered_ts = datetime.now()
 
                 self.request.user.save()
 
@@ -203,6 +205,8 @@ class PowerupCloseAnswerView(APIView):
             self.request.userstatus.hint_powerup = False
             self.request.userstatus.skip_powerup = False
             self.request.userstatus.accept_close_answer = False
+            self.request.userstatus.last_answered_ts = datetime.now()
+
 
 
             self.request.user.save()
@@ -227,3 +231,25 @@ class PowerupCloseAnswerView(APIView):
         if string_check.search(user_response) == None: 
             return True
         return False
+
+class LeaderBoardView(generics.ListAPIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = User.objects.all()
+    serializer_class = LeaderBoardSerializers
+
+    def get_queryset(self):
+        users = User.objects.order_by('-points')[:25]
+        users_list = self._split(users)
+        return users_list
+
+    def _split(self ,array):
+        array = list(array)
+        for counter in range(0,len(array)):
+            if not counter + 1 == len(array): # rule out , index exceed error
+                if array[counter].points == array[counter + 1].points: # if same points
+                    if array[counter + 1].userstatus.last_answered_ts < array[counter].userstatus.last_answered_ts: # if later object has reached timestamp earlier
+                        array[counter + 1] , array[counter] = array[counter] , array[counter + 1] # swapping
+
+        return array
