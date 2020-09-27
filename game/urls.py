@@ -7,13 +7,15 @@ from .views import (
     PowerupHintView,
     PowerupSkipView,
     PowerupCloseAnswerView,
-    LeaderBoardView
+    LeaderBoardView,
+    XpTimeGeneration
 )
 
 urlpatterns = [
     path('question/', Questionview.as_view()),
     path('answer/', Answerview.as_view()),
     path('hint/', Hintview.as_view()),
+    path('xp-time/', XpTimeGeneration.as_view()),
     path('leaderboard/', LeaderBoardView.as_view()),
     
     path('powerup/hint/', PowerupHintView.as_view()),

@@ -34,6 +34,7 @@ class UserStatus(models.Model):
     skip_powerup = models.BooleanField(default=False)
     accept_close_answer = models.BooleanField(default=False)
     last_answered_ts = models.DateTimeField(null = True)
+    first_timestamp = models.DateTimeField(null = True)
 
 
     def __str__(self):
