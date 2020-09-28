@@ -240,16 +240,5 @@ class LeaderBoardView(generics.ListAPIView):
     serializer_class = LeaderBoardSerializers
 
     def get_queryset(self):
-        users = User.objects.order_by('-points')[:25]
-        users_list = self._split(users)
-        return users_list
-
-    def _split(self ,array):
-        array = list(array)
-        for counter in range(0,len(array)):
-            if not counter + 1 == len(array): # rule out , index exceed error
-                if array[counter].points == array[counter + 1].points: # if same points
-                    if array[counter + 1].userstatus.last_answered_ts < array[counter].userstatus.last_answered_ts: # if later object has reached timestamp earlier
-                        array[counter + 1] , array[counter] = array[counter] , array[counter + 1] # swapping
-
-        return array
+        users = User.objects.order_by('-points' , 'userstatus__last_answered_ts')[:25]
+        return users
