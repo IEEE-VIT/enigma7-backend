@@ -240,5 +240,5 @@ class LeaderBoardView(generics.ListAPIView):
     serializer_class = LeaderBoardSerializers
 
     def get_queryset(self):
-        users = User.objects.order_by('-points' , 'userstatus__last_answered_ts')[:25]
+        users = User.objects.order_by('-points' , 'user_status__last_answered_ts')[:25]
         return users

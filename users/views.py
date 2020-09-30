@@ -65,7 +65,7 @@ class InstagramLogin(CustomSocialLoginView):
 def user_detail_view(request):
     if request.method == 'GET':
 
-        users = User.objects.order_by('-points','userstatus__last_answered_ts')
+        users = User.objects.order_by('-points','user_status__last_answered_ts')
         
         for counter in range(0,len(users)):
             if users[counter].username == request.user.username:

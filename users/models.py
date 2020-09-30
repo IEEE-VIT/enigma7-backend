@@ -9,7 +9,7 @@ from .managers import *
 class User(AbstractUser):
     username=models.CharField(max_length=255, null= False)
     email=models.EmailField(max_length=255,unique=True)
-    points=models.IntegerField(default=0)
+    points=models.IntegerField(default=0 , db_index=True)
     question_answered=models.IntegerField(default=0)    
     no_of_hints_used=models.IntegerField(default=0)
     no_of_attempts=models.IntegerField(default=0)
@@ -34,7 +34,7 @@ class UserStatus(models.Model):
     hint_powerup = models.BooleanField(default=False)
     skip_powerup = models.BooleanField(default=False)
     accept_close_answer = models.BooleanField(default=False)
-    last_answered_ts = models.DateTimeField(null = True)
+    last_answered_ts = models.DateTimeField(null = True,db_index=True)
 
 
     def __str__(self):
