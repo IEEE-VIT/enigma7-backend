@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from django.utils import timezone
 
 from .serializers import QuestionSerializer , HintSerializer , LeaderBoardSerializers
 from .models import Question
@@ -56,6 +57,9 @@ class Answerview(APIView):
         question = get_object_or_404(Question , id = int(ques_id))
         self.request.user.no_of_attempts += 1
 
+        if self.request.user.userstatus.first_timestamp == None:
+            self.request.user.userstatus.first_timestamp = timezone.now()
+
         if self._isValid(user_answer):
             if self._isAnswer(question , user_answer):
 
@@ -67,10 +71,10 @@ class Answerview(APIView):
                 self.request.user.question_answered += 1
 
                 self.request.user.userstatus.hint_used = False
-                self.request.userstatus.hint_powerup = False
-                self.request.userstatus.skip_powerup = False
-                self.request.userstatus.accept_close_answer = False
-                self.request.userstatus.last_answered_ts = datetime.now()
+                self.request.user.userstatus.hint_powerup = False
+                self.request.user.userstatus.skip_powerup = False
+                self.request.user.userstatus.accept_close_answer = False
+                self.request.user.userstatus.last_answered_ts = datetime.now()
 
                 self.request.user.save()
 
@@ -240,5 +244,18 @@ class LeaderBoardView(generics.ListAPIView):
     serializer_class = LeaderBoardSerializers
 
     def get_queryset(self):
-        users = User.objects.order_by('-points' , 'userstatus__last_answered_ts')[:25]
+        users = User.objects.order_by('-points' , 'user_status__last_answered_ts')[:25]
         return users
+
+
+class XpTimeGeneration(APIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self , request , *args , **kwargs):
+        resp = {}
+        elapsed_time = (timezone.now() - request.user.userstatus.first_timestamp).total_seconds()
+        next_time = elapsed_time + (3600 - (elapsed_time % 3600))
+        resp['time_left'] = next_time - elapsed_time
+        return Response(resp)
