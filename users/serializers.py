@@ -1,11 +1,24 @@
 
 from rest_framework import serializers
 from .models import *
-
 import re
+
+class UserStatusSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserStatus
+        fields = (
+            "hint_used",
+            "hint_powerup",
+            "skip_powerup",
+            "accept_close_answer"
+        )
 
 
 class Userserializer(serializers.ModelSerializer):
+    
+    user_status = UserStatusSerializer()
+
     class Meta:
         model = User
         fields = (
@@ -16,6 +29,7 @@ class Userserializer(serializers.ModelSerializer):
             "question_answered",
             "xp",
             "no_of_hints_used"
+            "user_status"
         )
 
 class UsernameSerializer(serializers.ModelSerializer):

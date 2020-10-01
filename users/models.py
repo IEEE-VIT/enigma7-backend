@@ -22,14 +22,13 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
 
-
     def __str__(self):
 	    return self.email
 
 
 class UserStatus(models.Model):
 
-    user = models.OneToOneField(User , on_delete=models.CASCADE)
+    user = models.OneToOneField(User , related_name = 'user_status', on_delete=models.CASCADE)
     hint_used = models.BooleanField(default=False)
     hint_powerup = models.BooleanField(default=False)
     skip_powerup = models.BooleanField(default=False)
@@ -39,5 +38,3 @@ class UserStatus(models.Model):
 
     def __str__(self):
 	    return self.user.username
-    
-
