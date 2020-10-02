@@ -28,7 +28,7 @@ class Userserializer(serializers.ModelSerializer):
             "points",
             "question_answered",
             "xp",
-            "no_of_hints_used"
+            "no_of_hints_used",
             "user_status"
         )
 

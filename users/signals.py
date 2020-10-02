@@ -12,4 +12,4 @@ def create_userstatus(sender , instance , created , **kwargs):
 def update_userstatus(sender , instance , created , **kwargs):
     
     if created == False:
-        instance.userstatus.save()
+        instance.user_status.save()

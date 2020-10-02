@@ -57,24 +57,24 @@ class Answerview(APIView):
         question = get_object_or_404(Question , id = int(ques_id))
         self.request.user.no_of_attempts += 1
 
-        if self.request.user.userstatus.first_timestamp == None:
-            self.request.user.userstatus.first_timestamp = timezone.now()
+        if self.request.user.user_status.first_timestamp == None:
+            self.request.user.user_status.first_timestamp = timezone.now()
 
         if self._isValid(user_answer):
             if self._isAnswer(question , user_answer):
 
-                if self.request.user.userstatus.hint_used == False:   # hint is not taken
+                if self.request.user.user_status.hint_used == False:   # hint is not taken
                     self.request.user.points += CORRECT_POINTS
                 else:
                     self.request.user.points += CORRECT_POINTS-HINT_COST
 
                 self.request.user.question_answered += 1
 
-                self.request.user.userstatus.hint_used = False
-                self.request.user.userstatus.hint_powerup = False
-                self.request.user.userstatus.skip_powerup = False
-                self.request.user.userstatus.accept_close_answer = False
-                self.request.user.userstatus.last_answered_ts = datetime.now()
+                self.request.user.user_status.hint_used = False
+                self.request.user.user_status.hint_powerup = False
+                self.request.user.user_status.skip_powerup = False
+                self.request.user.user_status.accept_close_answer = False
+                self.request.user.user_status.last_answered_ts = datetime.now()
 
                 self.request.user.save()
 
@@ -114,10 +114,10 @@ class Hintview(APIView):
 
     def get(self , request , *args , **kwargs):
         
-        if not request.user.userstatus.hint_used:
+        if not request.user.user_status.hint_used:
             request.user.no_of_hints_used += 1
 
-        request.user.userstatus.hint_used = True
+        request.user.user_status.hint_used = True
         request.user.save()
         serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
         return Response(serializer.data)
@@ -130,7 +130,7 @@ class PowerupHintView(APIView):
 
     def get(self , request , *args , **kwargs):
 
-        if request.user.userstatus.hint_used or request.user.userstatus.hint_powerup:
+        if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
             return Response({'detail' : 'You have already taken a hint .'})
 
         else:
@@ -138,16 +138,16 @@ class PowerupHintView(APIView):
 
                 serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
                 request.user.xp -= HINT_XP
-                request.user.userstatus.hint_powerup = True
+                request.user.user_status.hint_powerup = True
 
                 request.user.save()
 
                 response = dict(serializer.data)
-                response.update({'status' : request.user.userstatus.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.userstatus.hint_powerup})
+                response.update({'status' : request.user.user_status.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.user_status.hint_powerup})
 
                 return Response(response , status=200)
             else:
-                resp = {"detail" : "Insufficient Xp" , 'status' : request.user.userstatus.hint_powerup}
+                resp = {"detail" : "Insufficient Xp" , 'status' : request.user.user_status.hint_powerup}
                 return Response(resp , status=200)
 
 
@@ -163,15 +163,15 @@ class PowerupSkipView(APIView):
             request.user.question_id += 1
             request.user.xp -= SKIP_XP
 
-            request.user.userstatus.hint_used = False
-            request.userstatus.hint_powerup = False
-            request.userstatus.skip_powerup = False
-            request.userstatus.accept_close_answer = False
+            request.user.user_status.hint_used = False
+            request.user.user_status.hint_powerup = False
+            request.user.user_status.skip_powerup = False
+            request.user.user_status.accept_close_answer = False
 
             request.user.save()
-            return Response({'question_id' : request.user.question_id , 'status' : request.user.userstatus.skip_powerup , 'xp' : request.user.xp} , status=200)
+            return Response({'question_id' : request.user.question_id , 'status' : request.user.user_status.skip_powerup , 'xp' : request.user.xp} , status=200)
         else:
-            resp = {"detail" : "Insufficient Xp" , "status" : request.user.userstatus.skip_powerup}
+            resp = {"detail" : "Insufficient Xp" , "status" : request.user.user_status.skip_powerup}
             return Response(resp , status=200)
 
 
@@ -184,7 +184,7 @@ class PowerupCloseAnswerView(APIView):
 
         if self.request.user.xp >= ACCEPT_CLOSE_XP:
 
-            self.request.user.userstatus.accept_close_answer = True
+            self.request.user.user_status.accept_close_answer = True
             
             ques_id = self.request.user.question_id 
             user_answer = args[0].data['answer']
@@ -192,9 +192,9 @@ class PowerupCloseAnswerView(APIView):
 
             if self._isCloseAnswer(question , user_answer) or self._isAnswer(question , user_answer):
                 
-                if self.request.user.userstatus.hint_used: # If user takes up both ( Close answer powerup and hint )
+                if self.request.user.user_status.hint_used: # If user takes up both ( Close answer powerup and hint )
                     self.request.user.points += CORRECT_POINTS-HINT_COST
-                    self.request.user.userstatus.hint_used = False        
+                    self.request.user.user_status.hint_used = False        
                 else:
                     self.request.user.points += CORRECT_POINTS
             else:
@@ -205,19 +205,19 @@ class PowerupCloseAnswerView(APIView):
             self.request.user.question_answered += 1
             self.request.user.xp -= ACCEPT_CLOSE_XP
 
-            self.request.userstatus.hint_used = False
-            self.request.userstatus.hint_powerup = False
-            self.request.userstatus.skip_powerup = False
-            self.request.userstatus.accept_close_answer = False
-            self.request.userstatus.last_answered_ts = datetime.now()
+            self.request.user.user_status.hint_used = False
+            self.request.user.user_status.hint_powerup = False
+            self.request.user.user_status.skip_powerup = False
+            self.request.user.user_status.accept_close_answer = False
+            self.request.user.user_status.last_answered_ts = datetime.now()
 
 
 
             self.request.user.save()
 
-            return Response({'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.userstatus.accept_close_answer} , status=200)
+            return Response({'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.user_status.accept_close_answer} , status=200)
         else:
-            resp = {"detail" : "Insufficient Xp" , "status" : self.request.user.userstatus.accept_close_answer}
+            resp = {"detail" : "Insufficient Xp" , "status" : self.request.user.user_status.accept_close_answer}
             return Response(resp , status=200)
 
     def _isCloseAnswer(self,question,answer):
@@ -255,7 +255,7 @@ class XpTimeGeneration(APIView):
 
     def get(self , request , *args , **kwargs):
         resp = {}
-        elapsed_time = (timezone.now() - request.user.userstatus.first_timestamp).total_seconds()
+        elapsed_time = (timezone.now() - request.user.user_status.first_timestamp).total_seconds()
         next_time = elapsed_time + (3600 - (elapsed_time % 3600))
         resp['time_left'] = next_time - elapsed_time
         return Response(resp)

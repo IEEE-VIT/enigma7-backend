@@ -7,6 +7,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = (
+            "id",
             "img_url",
             "text",
         )
