@@ -71,6 +71,7 @@ class Answerview(APIView):
                 self.request.user.question_answered += 1
 
                 self.request.user.user_status.hint_used = False
+                self.request.user.question_id += 1
                 self.request.user.user_status.hint_powerup = False
                 self.request.user.user_status.skip_powerup = False
                 self.request.user.user_status.accept_close_answer = False
