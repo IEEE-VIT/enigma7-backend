@@ -1,18 +1,16 @@
 from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 from django.utils import timezone
 
 from .serializers import QuestionSerializer , HintSerializer , LeaderBoardSerializers
 from .models import Question
 from users.models import User
 
-from rest_framework import generics , mixins
+from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticatedOrReadOnly , IsAuthenticated , AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-import json
 import re
 from datetime import datetime
 
@@ -32,21 +30,16 @@ class Questionview(generics.RetrieveAPIView):
     serializer_class = QuestionSerializer
     lookup_field = 'id'
 
-    def get_object(self , *args , **kwargs):    
-        kwargs = self.kwargs
+    def get_object(self , *args , **kwargs):
         q_get = get_object_or_404(Question,id = self.request.user.question_id)
         return q_get
 
 
-
 class Answerview(APIView):
-
-    '''
-
+    """
     Post request of form {"answer" : string}
+    """
 
-    '''
-    
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
@@ -100,9 +93,9 @@ class Answerview(APIView):
             return True
         return False
 
-    def _isValid(self , user_response): 
+    def _isValid(self , user_response):
         string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) == None: 
+        if string_check.search(user_response) == None:
             return True
         return False
 
@@ -113,7 +106,6 @@ class Hintview(APIView):
     authentication_classes = [TokenAuthentication]
 
     def get(self , request , *args , **kwargs):
-        
         if not request.user.user_status.hint_used:
             request.user.no_of_hints_used += 1
 
@@ -185,22 +177,20 @@ class PowerupCloseAnswerView(APIView):
         if self.request.user.xp >= ACCEPT_CLOSE_XP:
 
             self.request.user.user_status.accept_close_answer = True
-            
-            ques_id = self.request.user.question_id 
+            ques_id = self.request.user.question_id
             user_answer = args[0].data['answer']
             question = get_object_or_404(Question , id = int(ques_id))
 
             if self._isCloseAnswer(question , user_answer) or self._isAnswer(question , user_answer):
-                
                 if self.request.user.user_status.hint_used: # If user takes up both ( Close answer powerup and hint )
                     self.request.user.points += CORRECT_POINTS-HINT_COST
-                    self.request.user.user_status.hint_used = False        
+                    self.request.user.user_status.hint_used = False
                 else:
                     self.request.user.points += CORRECT_POINTS
             else:
                 response = {'detail' : "The answer isn't a close answer"}
                 return Response(response , status=200)
-                
+
             self.request.user.question_id += 1
             self.request.user.question_answered += 1
             self.request.user.xp -= ACCEPT_CLOSE_XP
@@ -230,9 +220,9 @@ class PowerupCloseAnswerView(APIView):
             return True
         return False
 
-    def _isValid(self , user_response): 
+    def _isValid(self , user_response):
         string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) == None: 
+        if string_check.search(user_response) == None:
             return True
         return False
 

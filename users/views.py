@@ -1,7 +1,6 @@
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from django.conf import settings
 from rest_framework.response import Response
-from .models import * 
+from .models import *
 from .serializers import *
 from rest_framework.decorators import api_view
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
@@ -29,13 +28,12 @@ class CustomLoginView(LoginView):
         else:
             serializer = serializer_class(instance=self.token,
                                           context=self.get_serializer_context())
-        
         if self.user.username == '':
             check = {"username_exists": False}
         else:
             check = {"username_exists": True}
         response = Response({**serializer.data, **check}, status=status.HTTP_200_OK)
-        return response        
+        return response
 
 class CustomSocialLoginView(CustomLoginView):
     serializer_class = SocialLoginSerializer
@@ -50,7 +48,8 @@ class GoogleLogin(CustomSocialLoginView):
         url = self.request.data.get('callback_url')
         self.callback_url = url
         return super(GoogleLogin, self).post(request, *args, **kwargs)
-    
+
+
 class InstagramLogin(CustomSocialLoginView):
     permission_classes = ()
     adapter_class = InstagramOAuth2Adapter
@@ -63,18 +62,15 @@ class InstagramLogin(CustomSocialLoginView):
 
 @api_view(['GET'])
 def user_detail_view(request):
-    if request.method == 'GET':
+    users = User.objects.order_by('-points','user_status__last_answered_ts')
+    rank_dict = {'rank': 0}
+    for counter in range(0,len(users)):
+        if users[counter].username == request.user.username:
+            rank_dict = {'rank': counter + 1}
+            break
 
-        users = User.objects.order_by('-points','user_status__last_answered_ts')
-        
-        for counter in range(0,len(users)):
-            if users[counter].username == request.user.username:
-                rank_dict = {'rank' : counter + 1}
-                break
-    
-        serializer = dict(Userserializer(request.user).data)
-        serializer.update(rank_dict)
-        
+    serializer = dict(Userserializer(request.user).data)
+    serializer.update(rank_dict)
     return Response(serializer)
 
 
@@ -88,5 +84,5 @@ def edit_username(request):
             data = request.data
         )
         serializer.is_valid(raise_exception = True)
-        serializer.save() 
+        serializer.save()
         return Response(serializer.data)
