@@ -35,6 +35,7 @@ class CustomLoginView(LoginView):
         response = Response({**serializer.data, **check}, status=status.HTTP_200_OK)
         return response
 
+
 class CustomSocialLoginView(CustomLoginView):
     serializer_class = SocialLoginSerializer
 

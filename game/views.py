@@ -10,9 +10,11 @@ from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 import re
 from datetime import datetime
+import json
 
 CORRECT_POINTS = 10
 HINT_COST = 5
@@ -48,6 +50,15 @@ class Answerview(APIView):
         ques_id = self.request.user.question_id  # get the question id in which current user is on 
         user_answer = args[0].data['answer']
         question = get_object_or_404(Question , id = int(ques_id))
+        if self.request.user.no_of_attempts == 0:
+            schedule, _ = IntervalSchedule.objects.get_or_create(
+                every=10, period=IntervalSchedule.SECONDS
+            )
+            PeriodicTask.objects.create(
+                    interval=schedule, name=f"XP Gen for user {self.request.user.id}",
+                    task='game.tasks.increase_user_xp',
+                    kwargs=json.dumps({'user_id': self.request.user.id})
+            )
         self.request.user.no_of_attempts += 1
 
         if self.request.user.user_status.first_timestamp == None:
@@ -74,12 +85,15 @@ class Answerview(APIView):
                 return Response({'answer' : True} , status=200)
 
             elif self._isCloseAnswer(question , user_answer):
+                self.request.user.save()
                 return Response({'answer' : False , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
 
             else:
+                self.request.user.save()
                 resp = {'answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
                 return Response(resp , status=200)
         else:
+            self.request.user.save()
             resp = {"detail" : "Special characters are not allowed"}
             return Response(resp , status=400)
 
