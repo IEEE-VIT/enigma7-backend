@@ -71,6 +71,7 @@ class Answerview(APIView):
                 self.request.user.question_answered += 1
 
                 self.request.user.user_status.hint_used = False
+                self.request.user.question_id += 1
                 self.request.user.user_status.hint_powerup = False
                 self.request.user.user_status.skip_powerup = False
                 self.request.user.user_status.accept_close_answer = False
@@ -78,13 +79,13 @@ class Answerview(APIView):
 
                 self.request.user.save()
 
-                return Response({'answer' : True} , status=200)
+                return Response({'answer' : True,'close_answer' : False} , status=200)
 
             elif self._isCloseAnswer(question , user_answer):
-                return Response({'answer' : False , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
+                return Response({'answer' : False , 'close_answer' : True , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
 
             else:
-                resp = {'answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
+                resp = {'answer' : False , 'close_answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
                 return Response(resp , status=200)
         else:
             resp = {"detail" : "Special characters are not allowed"}
@@ -198,7 +199,7 @@ class PowerupCloseAnswerView(APIView):
                 else:
                     self.request.user.points += CORRECT_POINTS
             else:
-                response = {'detail' : "The answer isn't a close answer"}
+                response = {'close_answer' : False , 'detail' : "The answer isn't a close answer"}
                 return Response(response , status=200)
                 
             self.request.user.question_id += 1
