@@ -71,16 +71,18 @@ INSTALLED_APPS = [
     'rest_framework',
 
     #social_oauth
-    
+
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
 
+    'corsheaders'
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -185,6 +187,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
