@@ -39,3 +39,20 @@ class UserStatus(models.Model):
 
     def __str__(self):
 	    return self.user.username
+
+class Logging(models.Model):
+
+    user = models.ForeignKey(User , on_delete=models.CASCADE)
+    points = models.IntegerField(default=0 , db_index=True)
+    no_of_hints_used=models.IntegerField(default=0)
+    no_of_attempts=models.IntegerField(default=0)
+    question_id=models.IntegerField(default=1)
+    timestamp = models.DateTimeField(null = True)
+    xp = models.IntegerField(default=0 , null = False , blank=False)
+    hint_used = models.BooleanField(default=False)
+    hint_powerup = models.BooleanField(default=False)
+    skip_powerup = models.BooleanField(default=False)
+    accept_close_answer = models.BooleanField(default=False)
+
+    def __str__(self):
+	    return self.user.username

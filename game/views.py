@@ -5,6 +5,7 @@ from django.utils import timezone
 from .serializers import QuestionSerializer , HintSerializer , LeaderBoardSerializers
 from .models import Question
 from users.models import User
+from .logging import logging
 
 from rest_framework import generics , mixins
 from rest_framework.views import APIView
@@ -24,7 +25,6 @@ SKIP_XP = 100
 ACCEPT_CLOSE_XP = 75
 
 
-
 class Questionview(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -32,7 +32,7 @@ class Questionview(generics.RetrieveAPIView):
     serializer_class = QuestionSerializer
     lookup_field = 'id'
 
-    def get_object(self , *args , **kwargs):    
+    def get_object(self , *args , **kwargs): 
         kwargs = self.kwargs
         q_get = get_object_or_404(Question,id = self.request.user.question_id)
         return q_get
@@ -78,14 +78,16 @@ class Answerview(APIView):
                 self.request.user.user_status.last_answered_ts = datetime.now()
 
                 self.request.user.save()
-
+                logging(self.request.user)
                 return Response({'answer' : True,'close_answer' : False} , status=200)
 
             elif self._isCloseAnswer(question , user_answer):
+                logging(self.request.user)
                 return Response({'answer' : False , 'close_answer' : True , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
 
             else:
                 resp = {'answer' : False , 'close_answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
+                logging(self.request.user)
                 return Response(resp , status=200)
         else:
             resp = {"detail" : "Special characters are not allowed"}
@@ -121,6 +123,7 @@ class Hintview(APIView):
         request.user.user_status.hint_used = True
         request.user.save()
         serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+        logging(request.user)
         return Response(serializer.data)
 
 
@@ -144,11 +147,12 @@ class PowerupHintView(APIView):
                 request.user.save()
 
                 response = dict(serializer.data)
-                response.update({'status' : request.user.user_status.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.user_status.hint_powerup})
-
+                response.update({'status' : request.user.user_status.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.user_status.hint_powerup})           
+                logging(self.request.user)
                 return Response(response , status=200)
             else:
                 resp = {"detail" : "Insufficient Xp" , 'status' : request.user.user_status.hint_powerup}
+                logging(self.request.user)
                 return Response(resp , status=200)
 
 
@@ -170,9 +174,11 @@ class PowerupSkipView(APIView):
             request.user.user_status.accept_close_answer = False
 
             request.user.save()
+            logging(self.request.user)
             return Response({'question_id' : request.user.question_id , 'status' : request.user.user_status.skip_powerup , 'xp' : request.user.xp} , status=200)
         else:
             resp = {"detail" : "Insufficient Xp" , "status" : request.user.user_status.skip_powerup}
+            logging(self.request.user)
             return Response(resp , status=200)
 
 
@@ -200,6 +206,7 @@ class PowerupCloseAnswerView(APIView):
                     self.request.user.points += CORRECT_POINTS
             else:
                 response = {'close_answer' : False , 'detail' : "The answer isn't a close answer"}
+                logging(self.request.user)
                 return Response(response , status=200)
                 
             self.request.user.question_id += 1
@@ -212,13 +219,13 @@ class PowerupCloseAnswerView(APIView):
             self.request.user.user_status.accept_close_answer = False
             self.request.user.user_status.last_answered_ts = datetime.now()
 
-
-
             self.request.user.save()
-
-            return Response({'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.user_status.accept_close_answer} , status=200)
+            resp = {'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.user_status.accept_close_answer}
+            logging(self.request.user)
+            return Response( resp, status=200)
         else:
             resp = {"detail" : "Insufficient Xp" , "status" : self.request.user.user_status.accept_close_answer}
+            logging(self.request.user)
             return Response(resp , status=200)
 
     def _isCloseAnswer(self,question,answer):
