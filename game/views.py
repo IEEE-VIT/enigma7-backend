@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.conf import settings
 
 from .serializers import (
     QuestionSerializer,
@@ -8,6 +9,7 @@ from .serializers import (
 from .models import Question
 from users.models import User
 from .logging import logging
+from .helpers import return_decoded_list
 
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -99,13 +101,15 @@ class Answerview(APIView):
             resp = {"detail": "Special characters are not allowed"}
             return Response(resp, status=400)
 
-    def _isAnswer(self, question, answer):
-        if answer.lower() in map(lambda x: x.lower(), question.answer):
+    def _isAnswer(self , question , answer):
+        decoded_answers = return_decoded_list(question.answer)
+        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
             return True
         return False
 
-    def _isCloseAnswer(self, question, answer):
-        if answer.lower() in map(lambda x: x.lower(), question.close_answers):
+    def _isCloseAnswer(self,question,answer):
+        decoded_answers = return_decoded_list(question.close_answers)
+        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
             return True
         return False
 
@@ -250,13 +254,15 @@ class PowerupCloseAnswerView(APIView):
             logging(self.request.user)
             return Response(resp, status=200)
 
-    def _isCloseAnswer(self, question, answer):
-        if answer.lower() in map(lambda x: x.lower(), question.close_answers):
+    def _isCloseAnswer(self,question,answer):
+        decoded_list = return_decoded_list(question.close_answers)
+        if answer.lower() in map(lambda x : x.lower() ,decoded_list):
             return True
         return False
 
-    def _isAnswer(self, question, answer):
-        if answer.lower() in map(lambda x: x.lower(), question.answer):
+    def _isAnswer(self , question , answer):
+        decoded_answers = return_decoded_list(question.answer)
+        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
             return True
         return False
 
