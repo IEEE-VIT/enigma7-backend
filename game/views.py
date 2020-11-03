@@ -121,17 +121,21 @@ class Hintview(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self, request, *args, **kwargs):
+    def get(self , request , *args , **kwargs):
+        
+        if request.user.user_status.hint_powerup:
+            response = dict(HintSerializer(get_object_or_404(Question , id = request.user.question_id)).data)
+            response.update({"detail" : "You are already on a hint powerup ."})
+            return Response(response)
+        else:
+            if not request.user.user_status.hint_used:
+                request.user.no_of_hints_used += 1
 
-        if not request.user.user_status.hint_used:
-            request.user.no_of_hints_used += 1
-
-        request.user.user_status.hint_used = True
-        request.user.save()
-        serializer = HintSerializer(get_object_or_404(
-            Question, id=request.user.question_id))
-        logging(request.user)
-        return Response(serializer.data)
+            request.user.user_status.hint_used = True
+            request.user.save()
+            serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+            logging(request.user)
+            return Response(serializer.data)
 
 
 class PowerupHintView(APIView):
