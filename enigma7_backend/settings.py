@@ -21,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
-#Load environment variables from .env
+# Load environment variables from .env
 env = environ.Env()
 if env.bool('DJANGO_READ_DOT_ENV_FILE', default=True):
     env_file = str(os.path.join(BASE_DIR, '.env'))
@@ -52,25 +52,25 @@ INSTALLED_APPS = [
     # Custom
 
     'game',
-    'users.apps.UsersConfig', # used for signals.py
+    'users.apps.UsersConfig',  # used for signals.py
 
     # Oauth
 
     'dj_rest_auth',
     'allauth',
 
-    #allauth
+    # allauth
 
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
 
-    #rest_framework
+    # rest_framework
 
     'rest_framework',
 
-    #social_oauth
+    # social_oauth
 
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
@@ -115,7 +115,7 @@ WSGI_APPLICATION = 'enigma7_backend.wsgi.application'
 # Oauth and Rest framework ( May shift to new file )
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES':(
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         # for browsable api view usage
         'rest_framework.authentication.SessionAuthentication',
@@ -147,10 +147,10 @@ REST_AUTH_SERIALIZERS = {
     'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
 }
 
-#custom user model
+# custom user model
 AUTH_USER_MODEL = 'users.User'
 
-#to avoid username field
+# to avoid username field
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -164,7 +164,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
     }
 }
-prod_db  =  dj_database_url.config(conn_max_age=500)
+prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)
 
 
@@ -212,6 +212,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # try to load local_settings.py if it exists
 try:
-  from .local_settings import *
+    from .local_settings import *
 except Exception as e:
-  pass
+    pass
