@@ -66,7 +66,7 @@ class Answerview(APIView):
                 if self.request.user.user_status.hint_used is False:
                     self.request.user.points += CORRECT_POINTS
                 else:
-                    self.request.user.points += CORRECT_POINTS-HINT_COST
+                    self.request.user.points += CORRECT_POINTS - HINT_COST
 
                 self.request.user.question_answered += 1
 
@@ -141,8 +141,7 @@ class PowerupHintView(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        if (request.user.user_status.hint_used or
-                request.user.user_status.hint_powerup):
+        if (request.user.user_status.hint_used or request.user.user_status.hint_powerup):
             return Response({'detail': 'You have already taken a hint .'})
 
         else:
@@ -219,7 +218,7 @@ class PowerupCloseAnswerView(APIView):
 
                 # If user takes up both ( Close answer powerup and hint )
                 if self.request.user.user_status.hint_used:
-                    self.request.user.points += CORRECT_POINTS-HINT_COST
+                    self.request.user.points += CORRECT_POINTS - HINT_COST
                     self.request.user.user_status.hint_used = False
                 else:
                     self.request.user.points += CORRECT_POINTS

@@ -213,5 +213,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # try to load local_settings.py if it exists
 try:
     from .local_settings import *
-except Exception as e:
+except Exception:
     pass
