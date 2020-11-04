@@ -24,14 +24,12 @@ def decode(key, string):
 def return_encoded_list(array):
     encoded_list = []
     for var in array:
-        encoded_list.append(encode(settings.ENCRYPTION_KEY , var))
+        encoded_list.append(encode(settings.ENCRYPTION_KEY, var))
     return encoded_list
 
 
 def return_decoded_list(array):
     decoded_list = []
     for var in array:
-        decoded_list.append(decode(settings.ENCRYPTION_KEY , var))
+        decoded_list.append(decode(settings.ENCRYPTION_KEY, var))
     return decoded_list
-
-

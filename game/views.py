@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.conf import settings
 
 from .serializers import (
     QuestionSerializer,
@@ -101,15 +100,15 @@ class Answerview(APIView):
             resp = {"detail": "Special characters are not allowed"}
             return Response(resp, status=400)
 
-    def _isAnswer(self , question , answer):
+    def _isAnswer(self, question, answer):
         decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 
-    def _isCloseAnswer(self,question,answer):
+    def _isCloseAnswer(self, question, answer):
         decoded_answers = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 
@@ -125,11 +124,12 @@ class Hintview(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self , request , *args , **kwargs):
-        
+    def get(self, request, *args, **kwargs):
+
         if request.user.user_status.hint_powerup:
-            response = dict(HintSerializer(get_object_or_404(Question , id = request.user.question_id)).data)
-            response.update({"detail" : "You are already on a hint powerup ."})
+            response = dict(HintSerializer(get_object_or_404(
+                Question, id=request.user.question_id)).data)
+            response.update({"detail": "You are already on a hint powerup ."})
             return Response(response)
         else:
             if not request.user.user_status.hint_used:
@@ -137,7 +137,7 @@ class Hintview(APIView):
 
             request.user.user_status.hint_used = True
             request.user.save()
-            serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
             logging(request.user)
             return Response(serializer.data)
 
@@ -150,9 +150,9 @@ class PowerupHintView(APIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
-            serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
             response = dict(serializer.data)
-            response.update({'detail' : 'You have already taken a hint .'})
+            response.update({'detail': 'You have already taken a hint .'})
             return Response(response)
 
         else:
@@ -261,15 +261,15 @@ class PowerupCloseAnswerView(APIView):
             logging(self.request.user)
             return Response(resp, status=200)
 
-    def _isCloseAnswer(self,question,answer):
+    def _isCloseAnswer(self, question, answer):
         decoded_list = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x : x.lower() ,decoded_list):
+        if answer.lower() in map(lambda x: x.lower(), decoded_list):
             return True
         return False
 
-    def _isAnswer(self , question , answer):
+    def _isAnswer(self, question, answer):
         decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x : x.lower() ,decoded_answers):
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 

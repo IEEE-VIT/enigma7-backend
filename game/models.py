@@ -3,7 +3,6 @@ from django.contrib.postgres.fields import ArrayField
 
 from .helpers import return_encoded_list
 
-import base64
 
 class Question(models.Model):
 
@@ -13,10 +12,10 @@ class Question(models.Model):
     answer = ArrayField(models.CharField(max_length=255, blank=False))
     close_answers = ArrayField(models.CharField(max_length=255))
 
-    def save(self , *args , **kwargs):
+    def save(self, *args, **kwargs):
         self.answer = return_encoded_list(self.answer)
         self.close_answers = return_encoded_list(self.close_answers)
-        super(Question , self).save(*args , **kwargs)
+        super(Question, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.text
