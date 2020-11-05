@@ -1,3 +1,4 @@
 .env
 *.pyc
 enigma7_backend/local_settings.py
+.vscode

@@ -1,9 +1,14 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from .serializers import QuestionSerializer , HintSerializer , LeaderBoardSerializers
+from .serializers import (
+    QuestionSerializer,
+    HintSerializer, LeaderBoardSerializers
+)
 from .models import Question
 from users.models import User
+from .logging import logging
+from .helpers import return_decoded_list
 
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -22,7 +27,6 @@ SKIP_XP = 100
 ACCEPT_CLOSE_XP = 75
 
 
-
 class Questionview(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -30,72 +34,87 @@ class Questionview(generics.RetrieveAPIView):
     serializer_class = QuestionSerializer
     lookup_field = 'id'
 
-    def get_object(self , *args , **kwargs):
-        q_get = get_object_or_404(Question,id = self.request.user.question_id)
+    def get_object(self, *args, **kwargs):
+        q_get = get_object_or_404(Question, id=self.request.user.question_id)
         return q_get
 
 
 class Answerview(APIView):
-    """
+
+    '''
+
     Post request of form {"answer" : string}
-    """
+
+    '''
 
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def post(self , *args , **kwargs):
+    def post(self, *args, **kwargs):
 
-        ques_id = self.request.user.question_id  # get the question id in which current user is on 
+        # get the question id in which current user is on
+        ques_id = self.request.user.question_id
         user_answer = args[0].data['answer']
-        question = get_object_or_404(Question , id = int(ques_id))
+        question = get_object_or_404(Question, id=int(ques_id))
         self.request.user.no_of_attempts += 1
 
-        if self.request.user.user_status.first_timestamp == None:
+        if self.request.user.user_status.first_timestamp is None:
             self.request.user.user_status.first_timestamp = timezone.now()
 
         if self._isValid(user_answer):
-            if self._isAnswer(question , user_answer):
+            if self._isAnswer(question, user_answer):
 
-                if self.request.user.user_status.hint_used == False:   # hint is not taken
+                if self.request.user.user_status.hint_used is False:
                     self.request.user.points += CORRECT_POINTS
                 else:
-                    self.request.user.points += CORRECT_POINTS-HINT_COST
+                    self.request.user.points += CORRECT_POINTS - HINT_COST
 
                 self.request.user.question_answered += 1
 
                 self.request.user.user_status.hint_used = False
+                self.request.user.question_id += 1
                 self.request.user.user_status.hint_powerup = False
                 self.request.user.user_status.skip_powerup = False
                 self.request.user.user_status.accept_close_answer = False
                 self.request.user.user_status.last_answered_ts = datetime.now()
 
                 self.request.user.save()
+                logging(self.request.user)
+                return Response(
+                    {'answer': True, 'close_answer': False},
+                    status=200
+                )
 
-                return Response({'answer' : True} , status=200)
-
-            elif self._isCloseAnswer(question , user_answer):
-                return Response({'answer' : False , 'detail' : "You are close to the answer !"} , status=200) # need better wordings here 
+            elif self._isCloseAnswer(question, user_answer):
+                logging(self.request.user)
+                resp = {'answer': False, 'close_answer': True,
+                        'detail': "You are close to the answer !"}
+                return Response(resp, status=200)
 
             else:
-                resp = {'answer' : False , 'detail' : "Keep Trying !"} # need better wordings here 
-                return Response(resp , status=200)
+                resp = {'answer': False, 'close_answer': False,
+                        'detail': "Keep Trying !"}  # need better wordings here
+                logging(self.request.user)
+                return Response(resp, status=200)
         else:
-            resp = {"detail" : "Special characters are not allowed"}
-            return Response(resp , status=400)
+            resp = {"detail": "Special characters are not allowed"}
+            return Response(resp, status=400)
 
-    def _isAnswer(self , question , answer):
-        if answer.lower() in map(lambda x : x.lower() ,question.answer):
+    def _isAnswer(self, question, answer):
+        decoded_answers = return_decoded_list(question.answer)
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 
-    def _isCloseAnswer(self,question,answer):
-        if answer.lower() in map(lambda x : x.lower() ,question.close_answers):
+    def _isCloseAnswer(self, question, answer):
+        decoded_answers = return_decoded_list(question.close_answers)
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 
-    def _isValid(self , user_response):
-        string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) == None:
+    def _isValid(self, user_response):
+        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        if string_check.search(user_response) is None:
             return True
         return False
 
@@ -105,14 +124,22 @@ class Hintview(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self , request , *args , **kwargs):
-        if not request.user.user_status.hint_used:
-            request.user.no_of_hints_used += 1
+    def get(self, request, *args, **kwargs):
 
-        request.user.user_status.hint_used = True
-        request.user.save()
-        serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
-        return Response(serializer.data)
+        if request.user.user_status.hint_powerup:
+            response = dict(HintSerializer(get_object_or_404(
+                Question, id=request.user.question_id)).data)
+            response.update({"detail": "You are already on a hint powerup ."})
+            return Response(response)
+        else:
+            if not request.user.user_status.hint_used:
+                request.user.no_of_hints_used += 1
+
+            request.user.user_status.hint_used = True
+            request.user.save()
+            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
+            logging(request.user)
+            return Response(serializer.data)
 
 
 class PowerupHintView(APIView):
@@ -120,27 +147,36 @@ class PowerupHintView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self , request , *args , **kwargs):
+    def get(self, request, *args, **kwargs):
 
         if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
-            return Response({'detail' : 'You have already taken a hint .'})
+            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
+            response = dict(serializer.data)
+            response.update({'detail': 'You have already taken a hint .'})
+            return Response(response)
 
         else:
-            if request.user.xp >= HINT_XP: # Hint xp
+            if request.user.xp >= HINT_XP:  # Hint xp
 
-                serializer = HintSerializer(get_object_or_404(Question , id = request.user.question_id))
+                serializer = HintSerializer(get_object_or_404(
+                    Question, id=request.user.question_id))
                 request.user.xp -= HINT_XP
                 request.user.user_status.hint_powerup = True
 
                 request.user.save()
 
                 response = dict(serializer.data)
-                response.update({'status' : request.user.user_status.hint_powerup  , 'xp' : request.user.xp , 'status' : request.user.user_status.hint_powerup})
-
-                return Response(response , status=200)
+                response.update({
+                    'status': request.user.user_status.hint_powerup,
+                    'xp': request.user.xp}
+                )
+                logging(self.request.user)
+                return Response(response, status=200)
             else:
-                resp = {"detail" : "Insufficient Xp" , 'status' : request.user.user_status.hint_powerup}
-                return Response(resp , status=200)
+                resp = {"detail": "Insufficient Xp",
+                        'status': request.user.user_status.hint_powerup}
+                logging(self.request.user)
+                return Response(resp, status=200)
 
 
 class PowerupSkipView(APIView):
@@ -148,7 +184,7 @@ class PowerupSkipView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def post(self, request , *args , **kwargs):
+    def post(self, request, *args, **kwargs):
 
         if request.user.xp >= SKIP_XP:
 
@@ -161,10 +197,16 @@ class PowerupSkipView(APIView):
             request.user.user_status.accept_close_answer = False
 
             request.user.save()
-            return Response({'question_id' : request.user.question_id , 'status' : request.user.user_status.skip_powerup , 'xp' : request.user.xp} , status=200)
+            logging(self.request.user)
+            resp = {'question_id': request.user.question_id,
+                    'status': request.user.user_status.skip_powerup,
+                    'xp': request.user.xp}
+            return Response(resp, status=200)
         else:
-            resp = {"detail" : "Insufficient Xp" , "status" : request.user.user_status.skip_powerup}
-            return Response(resp , status=200)
+            resp = {"detail": "Insufficient Xp",
+                    "status": request.user.user_status.skip_powerup}
+            logging(self.request.user)
+            return Response(resp, status=200)
 
 
 class PowerupCloseAnswerView(APIView):
@@ -172,24 +214,30 @@ class PowerupCloseAnswerView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def post(self, *args , **kwargs):
+    def post(self, *args, **kwargs):
 
         if self.request.user.xp >= ACCEPT_CLOSE_XP:
 
             self.request.user.user_status.accept_close_answer = True
+
             ques_id = self.request.user.question_id
             user_answer = args[0].data['answer']
-            question = get_object_or_404(Question , id = int(ques_id))
+            question = get_object_or_404(Question, id=int(ques_id))
 
-            if self._isCloseAnswer(question , user_answer) or self._isAnswer(question , user_answer):
-                if self.request.user.user_status.hint_used: # If user takes up both ( Close answer powerup and hint )
-                    self.request.user.points += CORRECT_POINTS-HINT_COST
+            if (self._isCloseAnswer(question, user_answer) or
+                    self._isAnswer(question, user_answer)):
+
+                # If user takes up both ( Close answer powerup and hint )
+                if self.request.user.user_status.hint_used:
+                    self.request.user.points += CORRECT_POINTS - HINT_COST
                     self.request.user.user_status.hint_used = False
                 else:
                     self.request.user.points += CORRECT_POINTS
             else:
-                response = {'detail' : "The answer isn't a close answer"}
-                return Response(response , status=200)
+                response = {'close_answer': False,
+                            'detail': "The answer isn't a close answer"}
+                logging(self.request.user)
+                return Response(response, status=200)
 
             self.request.user.question_id += 1
             self.request.user.question_answered += 1
@@ -201,30 +249,36 @@ class PowerupCloseAnswerView(APIView):
             self.request.user.user_status.accept_close_answer = False
             self.request.user.user_status.last_answered_ts = datetime.now()
 
-
-
             self.request.user.save()
-
-            return Response({'question_id' : self.request.user.question_id , 'xp' : self.request.user.xp , 'status' : self.request.user.user_status.accept_close_answer} , status=200)
+            resp = {'question_id': self.request.user.question_id,
+                    'xp': self.request.user.xp,
+                    'status': self.request.user.user_status.accept_close_answer}
+            logging(self.request.user)
+            return Response(resp, status=200)
         else:
-            resp = {"detail" : "Insufficient Xp" , "status" : self.request.user.user_status.accept_close_answer}
-            return Response(resp , status=200)
+            resp = {"detail": "Insufficient Xp",
+                    "status": self.request.user.user_status.accept_close_answer}
+            logging(self.request.user)
+            return Response(resp, status=200)
 
-    def _isCloseAnswer(self,question,answer):
-        if answer.lower() in map(lambda x : x.lower() ,question.close_answers):
+    def _isCloseAnswer(self, question, answer):
+        decoded_list = return_decoded_list(question.close_answers)
+        if answer.lower() in map(lambda x: x.lower(), decoded_list):
             return True
         return False
 
-    def _isAnswer(self , question , answer):
-        if answer.lower() in map(lambda x : x.lower() ,question.answer):
+    def _isAnswer(self, question, answer):
+        decoded_answers = return_decoded_list(question.answer)
+        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
             return True
         return False
 
-    def _isValid(self , user_response):
-        string_check= re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) == None:
+    def _isValid(self, user_response):
+        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+        if string_check.search(user_response) is None:
             return True
         return False
+
 
 class LeaderBoardView(generics.ListAPIView):
 
@@ -234,7 +288,8 @@ class LeaderBoardView(generics.ListAPIView):
     serializer_class = LeaderBoardSerializers
 
     def get_queryset(self):
-        users = User.objects.order_by('-points' , 'user_status__last_answered_ts')[:25]
+        users = User.objects.order_by(
+            '-points', 'user_status__last_answered_ts')[:25]
         return users
 
 
@@ -243,9 +298,11 @@ class XpTimeGeneration(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self , request , *args , **kwargs):
+    def get(self, request, *args, **kwargs):
         resp = {}
-        elapsed_time = (timezone.now() - request.user.user_status.first_timestamp).total_seconds()
+        elapsed_time = (
+            timezone.now() - request.user.user_status.first_timestamp
+        ).total_seconds()
         next_time = elapsed_time + (3600 - (elapsed_time % 3600))
         resp['time_left'] = next_time - elapsed_time
         return Response(resp)

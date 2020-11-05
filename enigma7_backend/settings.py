@@ -31,12 +31,16 @@ if env.bool('DJANGO_READ_DOT_ENV_FILE', default=True):
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 
+ENCRYPTION_KEY = env('ENCRYPTION_KEY')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+
 # Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,32 +50,40 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+
     # Custom
+
     'game',
-    'users.apps.UsersConfig', # used for signals.py
+    'users.apps.UsersConfig',  # used for signals.py
 
     # Oauth
+
     'dj_rest_auth',
     'allauth',
 
-    #allauth
+    # allauth
+
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
 
-    #rest_framework
+    # rest_framework
+
     'rest_framework',
 
-    #social_oauth
+    # social_oauth
+
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
 
+    'corsheaders'
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,7 +91,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'enigma7_backend.urls'
@@ -104,8 +115,9 @@ WSGI_APPLICATION = 'enigma7_backend.wsgi.application'
 
 
 # Oauth and Rest framework ( May shift to new file )
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES':(
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
         # for browsable api view usage
         'rest_framework.authentication.SessionAuthentication',
@@ -124,7 +136,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'email',
         ],
         'AUTH_PARAMS': {
-            'access_type': 'online',
+            'access_type': 'offline',
         }
     }
 }
@@ -137,10 +149,10 @@ REST_AUTH_SERIALIZERS = {
     'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
 }
 
-# Custom User model
+# custom user model
 AUTH_USER_MODEL = 'users.User'
 
-# To avoid username field
+# to avoid username field
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -154,7 +166,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
     }
 }
-prod_db  =  dj_database_url.config(conn_max_age=500)
+prod_db = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(prod_db)
 
 
@@ -176,6 +188,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -199,8 +212,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
-# Try to load local_settings.py if it exists
+# try to load local_settings.py if it exists
 try:
-  from .local_settings import *
-except Exception as e:
-  pass
+    from .local_settings import *
+except Exception:
+    pass

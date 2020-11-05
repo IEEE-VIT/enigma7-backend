@@ -20,6 +20,7 @@ class HintSerializer(serializers.ModelSerializer):
             "hint",
         )
 
+
 class LeaderBoardSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
