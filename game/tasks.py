@@ -1,6 +1,7 @@
 from users.models import User
 from celery import shared_task
 
+
 @shared_task
 def increase_user_xp(**kwargs):
     user_id = kwargs.get('user_id', None)
