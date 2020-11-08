@@ -77,7 +77,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
 
-    'corsheaders'
+    'corsheaders',
+    'django_celery_beat'
 ]
 
 SITE_ID = 1
@@ -203,6 +204,11 @@ USE_L10N = True
 
 USE_TZ = True
 
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_IMPORTS = ['game.tasks']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
