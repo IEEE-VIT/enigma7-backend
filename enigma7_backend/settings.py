@@ -33,6 +33,8 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 ENCRYPTION_KEY = env("ENCRYPTION_KEY")
 
+ENCRYPTION_KEY = env('ENCRYPTION_KEY')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -63,10 +65,19 @@ INSTALLED_APPS = [
     # rest_framework
     "rest_framework",
     # social_oauth
+<<<<<<< HEAD
     "allauth.socialaccount.providers.instagram",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.apple",
     "corsheaders",
+=======
+
+    'allauth.socialaccount.providers.instagram',
+    'allauth.socialaccount.providers.google',
+
+    'corsheaders',
+    'django_celery_beat'
+>>>>>>> 5a181749d374d756a926b6cb4d64cb7313113b63
 ]
 
 SITE_ID = 1
@@ -209,6 +220,11 @@ USE_L10N = True
 
 USE_TZ = True
 
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_IMPORTS = ['game.tasks']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
