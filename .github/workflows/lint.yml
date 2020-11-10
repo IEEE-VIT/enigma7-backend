@@ -1,7 +1,8 @@
 on:
     pull_request:
-        branches: [ master ]
-
+        branches:
+            - master
+            - staging
 jobs:
   lint:
     runs-on: ubuntu-latest
