@@ -12,7 +12,8 @@ from dj_rest_auth.views import LoginView
 from rest_framework import status
 from django.conf import settings
 from allauth.socialaccount.models import SocialToken
-from django.utils import timezone, timedelta
+from django.utils import timezone
+from datetime import timedelta
 
 
 class CustomLoginView(LoginView):

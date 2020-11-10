@@ -33,8 +33,6 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 ENCRYPTION_KEY = env("ENCRYPTION_KEY")
 
-ENCRYPTION_KEY = env('ENCRYPTION_KEY')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -65,19 +63,12 @@ INSTALLED_APPS = [
     # rest_framework
     "rest_framework",
     # social_oauth
-<<<<<<< HEAD
     "allauth.socialaccount.providers.instagram",
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.apple",
-    "corsheaders",
-=======
-
-    'allauth.socialaccount.providers.instagram',
-    'allauth.socialaccount.providers.google',
 
     'corsheaders',
     'django_celery_beat'
->>>>>>> 5a181749d374d756a926b6cb4d64cb7313113b63
 ]
 
 SITE_ID = 1
@@ -236,6 +227,6 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # try to load local_settings.py if it exists
 try:
-    from .local_settings import *
+    from .local_settings import * # noqa
 except Exception:
     pass
