@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Load environment variables from .env
 env = environ.Env()
 if env.bool('DJANGO_READ_DOT_ENV_FILE', default=True):
-    env_file = str(os.path.join(BASE_DIR, '.env'))
+    env_file = str(os.path.join(BASE_DIR, ".env"))
     if os.path.exists(env_file):
         env.read_env(env_file)
 
@@ -49,33 +49,23 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
-
     # Custom
-
     'game',
     'users.apps.UsersConfig',  # used for signals.py
-
     # Oauth
-
     'dj_rest_auth',
     'allauth',
-
     # allauth
-
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
     # rest_framework
-
     'rest_framework',
-
     # social_oauth
-
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
 
     'corsheaders',
     'django_celery_beat'
@@ -123,10 +113,7 @@ REST_FRAMEWORK = {
         # for browsable api view usage
         'rest_framework.authentication.SessionAuthentication',
     ),
-
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
 }
 
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
@@ -138,8 +125,28 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'offline',
+        },
+    },
+    'apple': {
+        'APP': {
+            # Your service identifier.
+            'client_id': 'akk.Enigma',
+            # The Key ID (visible in the "View Key Details" page).
+            'secret': '88F3X6Y2Z4',
+            # Member ID/App ID Prefix -- you can find it below your name
+            # at the top right corner of the page, or it’s your App ID
+            # Prefix in your App ID.
+            'key': 'F8CHS6PHQS',
+            # The certificate you downloaded when generating the key.
+            'certificate_key': """-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgwk6CSG8WtWDhyNaC
+441vKyTi97pFESI8Z72Kae2zHsygCgYIKoZIzj0DAQehRANCAASU4DM6Bi1wBq16
+X3CkVzmOQBqNpKGzkO0kAjkqtKm3r/Fwe7+dozH3xDTTjT/LA6ho1fSB7LN6zgql
+M4xhidpu
+-----END PRIVATE KEY-----
+""",
         }
-    }
+    },
 }
 
 
@@ -163,8 +170,8 @@ ACCOUNT_USERNAME_REQUIRED = False
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
     }
 }
 prod_db = dj_database_url.config(conn_max_age=500)
@@ -220,6 +227,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # try to load local_settings.py if it exists
 try:
-    from .local_settings import *
+    from .local_settings import * # noqa
 except Exception:
     pass
