@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  web:
+    build: .
+    command: bash -c "cd /code && python manage.py migrate --noinput && gunicorn enigma7_backend.wsgi:application --threads 2 --bind 0.0.0.0:80"
+    volumes:
+      - .:/code
+    depends_on:
+      - cloud_sql_proxy
+      - redis
+
+  redis:
+    image: "redis:alpine"
+
+  cloud_sql_proxy:
+    image: gcr.io/cloudsql-docker/gce-proxy:1.16
+    command: /cloud_sql_proxy -instances=carbon-helix-273210:asia-east2:enigma=tcp:0.0.0.0:5432
+    volumes:
+      - ./postgres-service-account.json:/config
+    ports:
+      - 5432:5432
+
+  celery:
+    build: .
+    command: celery -A enigma7_backend worker --loglevel=DEBUG
+    volumes:
+      - .:/code
+    depends_on:
+      - cloud_sql_proxy
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A enigma7_backend beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/code
+    depends_on:
+      - cloud_sql_proxy
+      - redis
+
+  lb:
+    image: dockercloud/haproxy
+    links:
+      - web
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /certs:/certs
+    environment:
+      EXTRA_BIND_SETTINGS: 443:no-sslv3
+      CERT_FOLDER: /certs/
+

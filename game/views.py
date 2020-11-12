@@ -97,14 +97,12 @@ class Answerview(APIView):
                 )
 
             elif self._isCloseAnswer(question, user_answer):
-                self.request.user.save()
                 logging(self.request.user)
                 resp = {'answer': False, 'close_answer': True,
                         'detail': "You are close to the answer !"}
                 return Response(resp, status=200)
 
             else:
-                self.request.user.save()
                 resp = {'answer': False, 'close_answer': False,
                         'detail': "Keep Trying !"}  # need better wordings here
                 logging(self.request.user)
