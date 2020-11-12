@@ -116,6 +116,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
 }
 
+APPLE_SECRET = env('APPLE_SECRET')
+APPLE_CERT = env('APPLE_CERT')
+
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -129,22 +132,10 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'apple': {
         'APP': {
-            # Your service identifier.
             'client_id': 'akk.Enigma',
-            # The Key ID (visible in the "View Key Details" page).
-            'secret': '88F3X6Y2Z4',
-            # Member ID/App ID Prefix -- you can find it below your name
-            # at the top right corner of the page, or it’s your App ID
-            # Prefix in your App ID.
+            'secret': APPLE_SECRET,
             'key': 'F8CHS6PHQS',
-            # The certificate you downloaded when generating the key.
-            'certificate_key': """-----BEGIN PRIVATE KEY-----
-MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgwk6CSG8WtWDhyNaC
-441vKyTi97pFESI8Z72Kae2zHsygCgYIKoZIzj0DAQehRANCAASU4DM6Bi1wBq16
-X3CkVzmOQBqNpKGzkO0kAjkqtKm3r/Fwe7+dozH3xDTTjT/LA6ho1fSB7LN6zgql
-M4xhidpu
------END PRIVATE KEY-----
-""",
+            'certificate_key': APPLE_CERT
         }
     },
 }
