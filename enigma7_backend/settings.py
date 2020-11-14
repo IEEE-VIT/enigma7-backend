@@ -24,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Load environment variables from .env
 env = environ.Env()
 if env.bool('DJANGO_READ_DOT_ENV_FILE', default=True):
-    env_file = str(os.path.join(BASE_DIR, '.env'))
+    env_file = str(os.path.join(BASE_DIR, ".env"))
     if os.path.exists(env_file):
         env.read_env(env_file)
 
@@ -49,35 +49,26 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
-
     # Custom
-
     'game',
     'users.apps.UsersConfig',  # used for signals.py
-
     # Oauth
-
     'dj_rest_auth',
     'allauth',
-
     # allauth
-
     'rest_framework.authtoken',
     'allauth.account',
     'allauth.socialaccount',
     'dj_rest_auth.registration',
-
     # rest_framework
-
     'rest_framework',
-
     # social_oauth
-
     'allauth.socialaccount.providers.instagram',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
 
-    'corsheaders'
+    'corsheaders',
+    'django_celery_beat'
 ]
 
 SITE_ID = 1
@@ -122,11 +113,11 @@ REST_FRAMEWORK = {
         # for browsable api view usage
         'rest_framework.authentication.SessionAuthentication',
     ),
-
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
 }
+
+APPLE_SECRET = env('APPLE_SECRET')
+APPLE_CERT = env('APPLE_CERT')
 
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIALACCOUNT_PROVIDERS = {
@@ -137,8 +128,16 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'offline',
+        },
+    },
+    'apple': {
+        'APP': {
+            'client_id': 'akk.Enigma',
+            'secret': APPLE_SECRET,
+            'key': 'F8CHS6PHQS',
+            'certificate_key': APPLE_CERT
         }
-    }
+    },
 }
 
 
@@ -164,11 +163,13 @@ ACCOUNT_USERNAME_REQUIRED = False
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
     }
 }
-prod_db = dj_database_url.config(conn_max_age=500)
-DATABASES['default'].update(prod_db)
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -203,6 +204,11 @@ USE_L10N = True
 
 USE_TZ = True
 
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_IMPORTS = ['game.tasks']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
@@ -210,10 +216,3 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-# try to load local_settings.py if it exists
-try:
-    from .local_settings import *
-except Exception:
-    pass

@@ -15,9 +15,11 @@ from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 import re
 from datetime import datetime
+import json
 
 from django.http import HttpRequest,HttpResponse
 from django.http import JsonResponse
@@ -59,6 +61,15 @@ class Answerview(APIView):
         ques_id = self.request.user.question_id
         user_answer = args[0].data['answer']
         question = get_object_or_404(Question, id=int(ques_id))
+        if self.request.user.no_of_attempts == 0:
+            schedule, _ = IntervalSchedule.objects.get_or_create(
+                every=10, period=IntervalSchedule.SECONDS
+            )
+            PeriodicTask.objects.create(
+                interval=schedule, name=f"XP Gen for user {self.request.user.id}",
+                task='game.tasks.increase_user_xp',
+                kwargs=json.dumps({'user_id': self.request.user.id})
+            )
         self.request.user.no_of_attempts += 1
 
         if self.request.user.user_status.first_timestamp is None:
@@ -100,6 +111,7 @@ class Answerview(APIView):
                 logging(self.request.user)
                 return Response(resp, status=200)
         else:
+            self.request.user.save()
             resp = {"detail": "Special characters are not allowed"}
             return Response(resp, status=400)
 
