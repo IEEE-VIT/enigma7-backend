@@ -1,9 +1,18 @@
 from rest_framework import serializers
-from .models import Question
+from .models import Question, StoryBlock
 from users.models import User
 
 
+class StoryBlockSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoryBlock
+        fields = (
+            "story_text",
+        )
+
+
 class QuestionSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Question
         fields = (
@@ -28,4 +37,13 @@ class LeaderBoardSerializers(serializers.ModelSerializer):
             "username",
             "points",
             "question_answered",
+        )
+
+class StoryLevelSerializer(serializers.ModelSerializer):
+    question_story = StoryBlockSerializer() 
+    class Meta:
+        model = Question
+        fields = (
+            "id",
+            "question_story",
         )
