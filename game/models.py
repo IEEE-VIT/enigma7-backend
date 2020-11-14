@@ -20,6 +20,7 @@ class Question(models.Model):
     def __str__(self):
         return self.text
 
+
 class StoryBlock(models.Model):
 
     story = models.OneToOneField(Question, related_name='question_story', on_delete=models.CASCADE)

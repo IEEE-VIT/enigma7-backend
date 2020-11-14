@@ -12,7 +12,7 @@ class StoryBlockSerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Question
         fields = (
@@ -39,8 +39,11 @@ class LeaderBoardSerializers(serializers.ModelSerializer):
             "question_answered",
         )
 
+
 class StoryLevelSerializer(serializers.ModelSerializer):
-    question_story = StoryBlockSerializer() 
+
+    question_story = StoryBlockSerializer()
+
     class Meta:
         model = Question
         fields = (

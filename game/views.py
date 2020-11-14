@@ -3,9 +3,9 @@ from django.utils import timezone
 
 from .serializers import (
     QuestionSerializer,
-    HintSerializer, LeaderBoardSerializers, StoryBlockSerializer, StoryLevelSerializer
+    HintSerializer, LeaderBoardSerializers, StoryLevelSerializer
 )
-from .models import Question, StoryBlock
+from .models import Question
 from users.models import User
 from .logging import logging
 from .helpers import return_decoded_list
@@ -20,9 +20,6 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import re
 from datetime import datetime
 import json
-
-from django.http import HttpRequest,HttpResponse
-from django.http import JsonResponse
 
 CORRECT_POINTS = 10
 HINT_COST = 5
@@ -322,6 +319,7 @@ class XpTimeGeneration(APIView):
         resp['time_left'] = next_time - elapsed_time
         return Response(resp)
 
+
 class IndividualLevelStoryView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -329,9 +327,10 @@ class IndividualLevelStoryView(generics.RetrieveAPIView):
     serializer_class = StoryLevelSerializer
     lookup_field = 'id'
 
-    def get_object(self, *args, **kwargs):
+    def get_object(self):
         story_get = get_object_or_404(Question, id=self.request.user.question_id)
         return story_get
+
 
 class CompleteLevelStoryView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
@@ -340,8 +339,6 @@ class CompleteLevelStoryView(generics.ListAPIView):
     serializer_class = StoryLevelSerializer
     lookup_field = 'id'
 
-
-    def get_queryset(self, *args, **kwargs):
-        story_get = Question.objects.filter(id__range = (1,self.request.user.question_id))
+    def get_queryset(self):
+        story_get = Question.objects.filter(id__range=(1, self.request.user.question_id))
         return story_get
-
