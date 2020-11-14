@@ -7,7 +7,9 @@ from .views import (
     PowerupSkipView,
     PowerupCloseAnswerView,
     LeaderBoardView,
-    XpTimeGeneration
+    XpTimeGeneration,
+    IndividualLevelStoryView,
+    CompleteLevelStoryView,
 )
 
 urlpatterns = [
@@ -20,4 +22,7 @@ urlpatterns = [
     path('powerup/hint/', PowerupHintView.as_view()),
     path('powerup/skip/', PowerupSkipView.as_view()),
     path('powerup/close-answer/', PowerupCloseAnswerView.as_view()),
+
+    path('story/', IndividualLevelStoryView.as_view()),
+    path('story/complete/', CompleteLevelStoryView.as_view()),
 ]
