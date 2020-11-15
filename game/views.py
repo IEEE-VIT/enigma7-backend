@@ -3,7 +3,7 @@ from django.utils import timezone
 
 from .serializers import (
     QuestionSerializer,
-    HintSerializer, LeaderBoardSerializers
+    HintSerializer, LeaderBoardSerializers, StoryLevelSerializer
 )
 from .models import Question
 from users.models import User
@@ -318,3 +318,27 @@ class XpTimeGeneration(APIView):
         next_time = elapsed_time + (3600 - (elapsed_time % 3600))
         resp['time_left'] = next_time - elapsed_time
         return Response(resp)
+
+
+class IndividualLevelStoryView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = Question.objects.all()
+    serializer_class = StoryLevelSerializer
+    lookup_field = 'id'
+
+    def get_object(self):
+        story_get = get_object_or_404(Question, id=self.request.user.question_id)
+        return story_get
+
+
+class CompleteLevelStoryView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = Question.objects.all()
+    serializer_class = StoryLevelSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        story_get = Question.objects.filter(id__range=(1, self.request.user.question_id))
+        return story_get
