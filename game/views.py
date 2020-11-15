@@ -60,7 +60,7 @@ class Answerview(APIView):
         question = get_object_or_404(Question, id=int(ques_id))
         if self.request.user.no_of_attempts == 0:
             schedule, _ = IntervalSchedule.objects.get_or_create(
-                every=10, period=IntervalSchedule.SECONDS
+                every=2, period=IntervalSchedule.MINUTES
             )
             PeriodicTask.objects.create(
                 interval=schedule, name=f"XP Gen for user {self.request.user.id}",
