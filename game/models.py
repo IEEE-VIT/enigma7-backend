@@ -6,6 +6,7 @@ from .helpers import return_encoded_list
 
 class Question(models.Model):
 
+    order = models.IntegerField(null=False, blank=False, unique=True)
     text = models.CharField(max_length=255)
     img_url = models.URLField(null=False, blank=False)  # each question must have a image .
     hint = models.CharField(max_length=255)

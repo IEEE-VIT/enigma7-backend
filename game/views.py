@@ -34,19 +34,17 @@ class Questionview(generics.RetrieveAPIView):
     authentication_classes = [TokenAuthentication]
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    lookup_field = 'id'
+    lookup_field = 'order'
 
     def get_object(self, *args, **kwargs):
-        q_get = get_object_or_404(Question, id=self.request.user.question_id)
+        q_get = get_object_or_404(Question, order=self.request.user.question_id)
         return q_get
 
 
 class Answerview(APIView):
 
     '''
-
     Post request of form {"answer" : string}
-
     '''
 
     permission_classes = [IsAuthenticated]
@@ -57,7 +55,7 @@ class Answerview(APIView):
         # get the question id in which current user is on
         ques_id = self.request.user.question_id
         user_answer = args[0].data['answer']
-        question = get_object_or_404(Question, id=int(ques_id))
+        question = get_object_or_404(Question, order=int(ques_id))
         if self.request.user.no_of_attempts == 0:
             schedule, _ = IntervalSchedule.objects.get_or_create(
                 every=2, period=IntervalSchedule.MINUTES
@@ -140,7 +138,7 @@ class Hintview(APIView):
 
         if request.user.user_status.hint_powerup:
             response = dict(HintSerializer(get_object_or_404(
-                Question, id=request.user.question_id)).data)
+                Question, order=request.user.question_id)).data)
             response.update({"detail": "You are already on a hint powerup ."})
             return Response(response)
         else:
@@ -149,7 +147,8 @@ class Hintview(APIView):
 
             request.user.user_status.hint_used = True
             request.user.save()
-            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(
+                Question, order=request.user.question_id))
             logging(request.user)
             return Response(serializer.data)
 
@@ -162,7 +161,8 @@ class PowerupHintView(APIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
-            serializer = HintSerializer(get_object_or_404(Question, id=request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(
+                Question, order=request.user.question_id))
             response = dict(serializer.data)
             response.update({'detail': 'You have already taken a hint .'})
             return Response(response)
@@ -171,7 +171,7 @@ class PowerupHintView(APIView):
             if request.user.xp >= HINT_XP:  # Hint xp
 
                 serializer = HintSerializer(get_object_or_404(
-                    Question, id=request.user.question_id))
+                    Question, order=request.user.question_id))
                 request.user.xp -= HINT_XP
                 request.user.user_status.hint_powerup = True
 
@@ -234,7 +234,7 @@ class PowerupCloseAnswerView(APIView):
 
             ques_id = self.request.user.question_id
             user_answer = args[0].data['answer']
-            question = get_object_or_404(Question, id=int(ques_id))
+            question = get_object_or_404(Question, order=int(ques_id))
 
             if (self._isCloseAnswer(question, user_answer) or
                     self._isAnswer(question, user_answer)):
@@ -325,10 +325,10 @@ class IndividualLevelStoryView(generics.RetrieveAPIView):
     authentication_classes = [TokenAuthentication]
     queryset = Question.objects.all()
     serializer_class = StoryLevelSerializer
-    lookup_field = 'id'
+    lookup_field = 'order'
 
     def get_object(self):
-        story_get = get_object_or_404(Question, id=self.request.user.question_id)
+        story_get = get_object_or_404(Question, order=self.request.user.question_id)
         return story_get
 
 
@@ -337,8 +337,8 @@ class CompleteLevelStoryView(generics.ListAPIView):
     authentication_classes = [TokenAuthentication]
     queryset = Question.objects.all()
     serializer_class = StoryLevelSerializer
-    lookup_field = 'id'
+    lookup_field = 'order'
 
     def get_queryset(self):
-        story_get = Question.objects.filter(id__range=(1, self.request.user.question_id))
+        story_get = Question.objects.filter(order__range=(1, self.request.user.question_id))
         return story_get
