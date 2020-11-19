@@ -147,7 +147,8 @@ class Hintview(APIView):
 
             request.user.user_status.hint_used = True
             request.user.save()
-            serializer = HintSerializer(get_object_or_404(Question, order=request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(
+                Question, order=request.user.question_id))
             logging(request.user)
             return Response(serializer.data)
 
@@ -160,7 +161,8 @@ class PowerupHintView(APIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
-            serializer = HintSerializer(get_object_or_404(Question, order=request.user.question_id))
+            serializer = HintSerializer(get_object_or_404(
+                Question, order=request.user.question_id))
             response = dict(serializer.data)
             response.update({'detail': 'You have already taken a hint .'})
             return Response(response)
