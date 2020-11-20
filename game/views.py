@@ -352,6 +352,6 @@ class EnigmaStatusView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def get(self):
+    def get(self, request, *args, **kwargs):
         resp = {'has_started': os.environ['ENIGMA_STARTED']}
         return Response(resp)
