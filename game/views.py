@@ -353,5 +353,8 @@ class EnigmaStatusView(APIView):
     authentication_classes = [TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-        resp = {'has_started': os.environ['ENIGMA_STARTED']}
+        date = datetime.strptime(os.environ['START_DATE'], '%d-%m-%Y').date()
+        time = datetime.strptime(os.environ['START_TIME'], '%H:%M').time()
+        resp = {'has_started': os.environ['ENIGMA_STARTED'],
+                'start_date': date, 'start_time': time}
         return Response(resp)
