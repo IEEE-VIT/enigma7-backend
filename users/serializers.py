@@ -56,4 +56,4 @@ class UsernameSerializer(serializers.ModelSerializer):
 class UserOutreachSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserOutreach
-        fields = ('id', 'outreach', 'is_college_student', 'year')
+        fields = ('user', 'outreach', 'is_college_student', 'year')

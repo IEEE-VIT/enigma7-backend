@@ -131,7 +131,8 @@ def edit_username(request):
 
 @api_view(['POST'])
 def user_outreach(request):
-    serializer = UserOutreachSerializer(instance=request.user, data=request.data)
+    data = {'user': request.user.id, **request.data}
+    serializer = UserOutreachSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
