@@ -10,6 +10,7 @@ from .views import (
     XpTimeGeneration,
     IndividualLevelStoryView,
     CompleteLevelStoryView,
+    EnigmaStatusView,
 )
 
 urlpatterns = [
@@ -25,4 +26,6 @@ urlpatterns = [
 
     path('story/', IndividualLevelStoryView.as_view()),
     path('story/complete/', CompleteLevelStoryView.as_view()),
+
+    path('status/', EnigmaStatusView.as_view()),
 ]

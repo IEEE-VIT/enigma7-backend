@@ -20,6 +20,8 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import re
 from datetime import datetime
 import json
+import os
+
 
 CORRECT_POINTS = 10
 HINT_COST = 5
@@ -344,3 +346,16 @@ class CompleteLevelStoryView(generics.ListAPIView):
     def get_queryset(self):
         story_get = Question.objects.filter(order__range=(1, self.request.user.question_id))
         return story_get
+
+
+class EnigmaStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        date = datetime.strptime(os.environ['START_DATE'], '%d-%m-%Y').date()
+        time = datetime.strptime(os.environ['START_TIME'], '%H:%M').time()
+        started_bool = bool(int(os.environ['ENIGMA_STARTED']))
+        resp = {'has_started': started_bool,
+                'start_date': date, 'start_time': time}
+        return Response(resp)
