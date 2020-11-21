@@ -66,10 +66,11 @@ class UserOutreach(models.Model):
         ('Other', 'Other')
     )
     YEAR_CHOICES = (
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 4)
+        (2020, 2020),
+        (2021, 2021),
+        (2022, 2022),
+        (2023, 2023),
+        (2024, 2024)
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
