@@ -4,3 +4,4 @@ enigma7_backend/local_settings.py
 .vscode
 postgres-service-account.json
 celerybeat.pid
+staticfiles

@@ -52,3 +52,31 @@ class Logging(models.Model):
 
     def __str__(self):
         return self.user.username
+
+
+class UserOutreach(models.Model):
+    OUTREACH_CHOICES = (
+        ('Instagram', 'Instagram'),
+        ('Twitter', 'Twitter'),
+        ('Facebook', 'Facebook'),
+        ('Word of mouth', 'Word of mouth'),
+        ('WhatsApp', 'WhatsApp'),
+        ('Reddit', 'Reddit'),
+        ('E-Mail', 'E-Mail'),
+        ('Other', 'Other')
+    )
+    YEAR_CHOICES = (
+        (2020, 2020),
+        (2021, 2021),
+        (2022, 2022),
+        (2023, 2023),
+        (2024, 2024)
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    outreach = models.CharField(max_length=13, null=False, choices=OUTREACH_CHOICES)
+    is_college_student = models.BooleanField(null=False)
+    year = models.IntegerField(null=False, choices=YEAR_CHOICES)
+
+    def __str__(self):
+        return self.user.email

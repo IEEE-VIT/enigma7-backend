@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, UserStatus
+from .models import User, UserOutreach, UserStatus
 import re
 
 
@@ -51,3 +51,9 @@ class UsernameSerializer(serializers.ModelSerializer):
         if string_check.search(user_response) is None:
             return True
         return False
+
+
+class UserOutreachSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserOutreach
+        fields = ('user', 'outreach', 'is_college_student', 'year')
