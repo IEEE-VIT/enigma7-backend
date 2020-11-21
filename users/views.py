@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from .models import User
-from .serializers import UsernameSerializer, Userserializer
+from .serializers import UserOutreachSerializer, UsernameSerializer, Userserializer
 from rest_framework.decorators import api_view
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.instagram.views import InstagramOAuth2Adapter
@@ -127,3 +127,12 @@ def edit_username(request):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+@api_view(['POST'])
+def user_outreach(request):
+    serializer = UserOutreachSerializer(instance=request.user, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

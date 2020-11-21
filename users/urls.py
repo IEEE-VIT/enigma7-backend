@@ -11,4 +11,5 @@ urlpatterns = [
     path('me/edit/', views.edit_username),
     path('me/', views.user_detail_view),
     path('logout/', LogoutView.as_view()),
+    path('outreach/', views.user_outreach)
 ]
