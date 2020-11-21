@@ -137,3 +137,11 @@ def user_outreach(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def username_exists(request):
+    if request.user.username:
+        return Response({"username_exists": True})
+    else:
+        return Response({"username_exists": False})
