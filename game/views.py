@@ -355,6 +355,7 @@ class EnigmaStatusView(APIView):
     def get(self, request, *args, **kwargs):
         date = datetime.strptime(os.environ['START_DATE'], '%d-%m-%Y').date()
         time = datetime.strptime(os.environ['START_TIME'], '%H:%M').time()
-        resp = {'has_started': os.environ['ENIGMA_STARTED'],
+        started_bool = bool(int(os.environ['ENIGMA_STARTED']))
+        resp = {'has_started': started_bool,
                 'start_date': date, 'start_time': time}
         return Response(resp)
