@@ -76,3 +76,6 @@ class UserOutreach(models.Model):
     outreach = models.CharField(max_length=13, null=False, choices=OUTREACH_CHOICES)
     is_college_student = models.BooleanField(null=False)
     year = models.IntegerField(null=False, choices=YEAR_CHOICES)
+
+    def __str__(self):
+        return self.user.email
