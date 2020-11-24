@@ -12,6 +12,7 @@ class Question(models.Model):
     hint = models.CharField(max_length=255)
     answer = ArrayField(models.CharField(max_length=255, blank=False))
     close_answers = ArrayField(models.CharField(max_length=255))
+    solves = models.IntegerField(default = 0) 
 
     def save(self, *args, **kwargs):
         self.answer = return_encoded_list(self.answer)
