@@ -74,11 +74,29 @@ class Answerview(APIView):
 
         if self._isValid(user_answer):
             if self._isAnswer(question, user_answer):
+                question_solves = question.solves
 
                 if self.request.user.user_status.hint_used is False:
-                    self.request.user.points += CORRECT_POINTS
+                    if question_solves <= 10:
+                        self.request.user.points += 100
+                    elif question_solves > 10 and question_solves <= 20:
+                        self.request.user.points += 90
+                    elif question_solves > 20 and question_solves <= 30:
+                        self.request.user.points += 85
+                    elif question_solves > 30:
+                        self.request.user.points += 75
                 else:
-                    self.request.user.points += CORRECT_POINTS - HINT_COST
+                    if question_solves >= 0 and question_solves <= 10:
+                        self.request.user.points += 100 - HINT_COST
+                    elif question_solves > 10 and question_solves <= 20:
+                        self.request.user.points += 90 - HINT_COST
+                    elif question_solves > 20 and question_solves <= 30:
+                        self.request.user.points += 85 - HINT_COST
+                    elif question_solves > 30:
+                        self.request.user.points += 75 - HINT_COST
+
+                question_solves += 1  # number of solves for the question
+                question.save()
 
                 self.request.user.question_answered += 1
 
@@ -242,13 +260,33 @@ class PowerupCloseAnswerView(APIView):
 
             if (self._isCloseAnswer(question, user_answer) or
                     self._isAnswer(question, user_answer)):
+                question_solves = question.solves
 
                 # If user takes up both ( Close answer powerup and hint )
                 if self.request.user.user_status.hint_used:
-                    self.request.user.points += CORRECT_POINTS - HINT_COST
+                    if question_solves >= 0 and question_solves <= 10:
+                        self.request.user.points += 100 - HINT_COST
+                    elif question_solves > 10 and question_solves <= 20:
+                        self.request.user.points += 90 - HINT_COST
+                    elif question_solves > 20 and question_solves <= 30:
+                        self.request.user.points += 85 - HINT_COST
+                    elif question_solves > 30:
+                        self.request.user.points += 75 - HINT_COST
                     self.request.user.user_status.hint_used = False
                 else:
-                    self.request.user.points += CORRECT_POINTS
+                    if question_solves <= 10:
+                        self.request.user.points += 100
+                    elif question_solves > 10 and question_solves <= 20:
+                        self.request.user.points += 90
+                    elif question_solves > 20 and question_solves <= 30:
+                        self.request.user.points += 85
+                    elif question_solves > 30:
+                        self.request.user.points += 75
+
+                question_solves += 1  # number of solves for the question
+                question.save()
+
+                self.request.user.question_answered += 1
             else:
                 response = {'close_answer': False,
                             'detail': "The answer isn't a close answer"}
