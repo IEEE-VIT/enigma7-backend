@@ -103,17 +103,16 @@ class AppleLogin(CustomSocialLoginView):
 
 @api_view(['GET'])
 def user_detail_view(request):
-    if request.method == 'GET':
+    users = User.objects.order_by('-points', 'user_status__last_answered_ts')
 
-        users = User.objects.order_by('-points', 'user_status__last_answered_ts')
+    rank_dict = {'rank': 0}
+    for counter in range(0, len(users)):
+        if users[counter].username == request.user.username:
+            rank_dict = {'rank': counter + 1}
+            break
 
-        for counter in range(0, len(users)):
-            if users[counter].username == request.user.username:
-                rank_dict = {'rank': counter + 1}
-                break
-
-        serializer = dict(Userserializer(request.user).data)
-        serializer.update(rank_dict)
+    serializer = dict(Userserializer(request.user).data)
+    serializer.update(rank_dict)
 
     return Response(serializer)
 
