@@ -15,8 +15,9 @@ class Question(models.Model):
     solves = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        self.answer = return_encoded_list(self.answer)
-        self.close_answers = return_encoded_list(self.close_answers)
+        if not self.id:
+            self.answer = return_encoded_list(self.answer)
+            self.close_answers = return_encoded_list(self.close_answers)
         super(Question, self).save(*args, **kwargs)
 
     def __str__(self):
