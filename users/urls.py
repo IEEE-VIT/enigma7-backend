@@ -1,5 +1,5 @@
 
-from django.urls import path
+from django.urls import path, include
 from .views import GoogleLogin, AppleLogin
 from . import views
 from dj_rest_auth.views import LogoutView
@@ -12,5 +12,6 @@ urlpatterns = [
     path('me/', views.user_detail_view),
     path('logout/', LogoutView.as_view()),
     path('outreach/', views.user_outreach),
-    path('exists/', views.username_exists)
+    path('exists/', views.username_exists),
+    url(r'^accounts/', include('allauth.urls'), name='socialaccount_signup'),
 ]
