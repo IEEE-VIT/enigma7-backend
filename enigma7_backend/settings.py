@@ -132,7 +132,7 @@ SOCIALACCOUNT_PROVIDERS = {
     },
     'apple': {
         'APP': {
-            'client_id': 'akk.Enigma',
+            'client_id': 'com.enigma7.0,akk.Enigma',
             'secret': APPLE_SECRET,
             'key': 'F8CHS6PHQS',
             'certificate_key': APPLE_CERT

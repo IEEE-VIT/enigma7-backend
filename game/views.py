@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.db import transaction
 
 from .serializers import (
     QuestionSerializer,
@@ -8,7 +9,9 @@ from .serializers import (
 from .models import Question
 from users.models import User
 from .logging import logging
-from .helpers import return_decoded_list
+from .helpers import (
+    calculate_points, is_close_answer, is_correct_answer, is_valid_answer
+)
 
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -17,18 +20,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
-import re
 from datetime import datetime
 import json
 import os
 
 
-CORRECT_POINTS = 10
-HINT_COST = 5
-
 HINT_XP = 50
-SKIP_XP = 100
-ACCEPT_CLOSE_XP = 75
+SKIP_XP = 75
+ACCEPT_CLOSE_XP = 100
 
 
 class Questionview(generics.RetrieveAPIView):
@@ -39,7 +38,8 @@ class Questionview(generics.RetrieveAPIView):
     lookup_field = 'order'
 
     def get_object(self, *args, **kwargs):
-        q_get = get_object_or_404(Question, order=self.request.user.question_id)
+        user = self.request.user
+        q_get = get_object_or_404(Question, order=user.question_id)
         return q_get
 
 
@@ -52,103 +52,69 @@ class Answerview(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
+    @transaction.atomic
     def post(self, *args, **kwargs):
-
+        user = self.request.user
         # get the question id in which current user is on
-        ques_id = self.request.user.question_id
+        ques_id = user.question_id
         user_answer = args[0].data['answer']
         question = get_object_or_404(Question, order=int(ques_id))
-        if self.request.user.no_of_attempts == 0:
+        time = timezone.localtime(timezone.now())
+        if user.no_of_attempts == 0:
             schedule, _ = IntervalSchedule.objects.get_or_create(
                 every=2, period=IntervalSchedule.MINUTES
             )
             PeriodicTask.objects.create(
-                interval=schedule, name=f"XP Gen for user {self.request.user.id}",
+                interval=schedule, name=f"XP Gen for user {user.id}",
                 task='game.tasks.increase_user_xp',
-                kwargs=json.dumps({'user_id': self.request.user.id})
+                kwargs=json.dumps({'user_id': user.id})
             )
-        self.request.user.no_of_attempts += 1
+        user.no_of_attempts += 1
 
-        if self.request.user.user_status.first_timestamp is None:
-            self.request.user.user_status.first_timestamp = timezone.now()
+        if user.user_status.first_timestamp is None:
+            user.user_status.first_timestamp = time
 
-        if self._isValid(user_answer):
-            if self._isAnswer(question, user_answer):
-                question_solves = question.solves
+        if is_valid_answer(user_answer):
+            if is_correct_answer(question, user_answer):
+                user.points += calculate_points(question.solves, user.user_status.hint_used)
 
-                if self.request.user.user_status.hint_used is False:
-                    if question_solves <= 10:
-                        self.request.user.points += 100
-                    elif question_solves > 10 and question_solves <= 20:
-                        self.request.user.points += 90
-                    elif question_solves > 20 and question_solves <= 30:
-                        self.request.user.points += 85
-                    elif question_solves > 30:
-                        self.request.user.points += 75
-                else:
-                    if question_solves >= 0 and question_solves <= 10:
-                        self.request.user.points += 100 - HINT_COST
-                    elif question_solves > 10 and question_solves <= 20:
-                        self.request.user.points += 90 - HINT_COST
-                    elif question_solves > 20 and question_solves <= 30:
-                        self.request.user.points += 85 - HINT_COST
-                    elif question_solves > 30:
-                        self.request.user.points += 75 - HINT_COST
-
-                question_solves += 1  # number of solves for the question
+                question.solves += 1  # number of solves for the question
                 question.save()
 
-                self.request.user.question_answered += 1
+                user.question_answered += 1
 
-                self.request.user.user_status.hint_used = False
-                self.request.user.question_id += 1
-                self.request.user.user_status.hint_powerup = False
-                self.request.user.user_status.skip_powerup = False
-                self.request.user.user_status.accept_close_answer = False
-                self.request.user.user_status.last_answered_ts = datetime.now()
+                user.user_status.hint_used = False
+                user.question_id += 1
+                user.xp += 5
+                user.user_status.hint_powerup = False
+                user.user_status.skip_powerup = False
+                user.user_status.accept_close_answer = False
+                user.user_status.last_answered_ts = time
 
-                self.request.user.save()
-                logging(self.request.user)
+                user.save()
+                logging(user)
                 return Response(
                     {'answer': True, 'close_answer': False},
                     status=200
                 )
 
-            elif self._isCloseAnswer(question, user_answer):
-                self.request.user.save()
-                logging(self.request.user)
+            elif is_close_answer(question, user_answer):
+                user.save()
+                logging(user)
                 resp = {'answer': False, 'close_answer': True,
                         'detail': "You are close to the answer !"}
                 return Response(resp, status=200)
 
             else:
-                self.request.user.save()
+                user.save()
                 resp = {'answer': False, 'close_answer': False,
                         'detail': "Keep Trying !"}  # need better wordings here
-                logging(self.request.user)
+                logging(user)
                 return Response(resp, status=200)
         else:
-            self.request.user.save()
+            user.save()
             resp = {"detail": "Special characters are not allowed"}
             return Response(resp, status=400)
-
-    def _isAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isCloseAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isValid(self, user_response):
-        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) is None:
-            return True
-        return False
 
 
 class Hintview(APIView):
@@ -157,7 +123,6 @@ class Hintview(APIView):
     authentication_classes = [TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-
         if request.user.user_status.hint_powerup:
             response = dict(HintSerializer(get_object_or_404(
                 Question, order=request.user.question_id)).data)
@@ -181,7 +146,6 @@ class PowerupHintView(APIView):
     authentication_classes = [TokenAuthentication]
 
     def get(self, request, *args, **kwargs):
-
         if request.user.user_status.hint_used or request.user.user_status.hint_powerup:
             serializer = HintSerializer(get_object_or_404(
                 Question, order=request.user.question_id))
@@ -204,12 +168,12 @@ class PowerupHintView(APIView):
                     'status': request.user.user_status.hint_powerup,
                     'xp': request.user.xp}
                 )
-                logging(self.request.user)
+                logging(request.user)
                 return Response(response, status=200)
             else:
                 resp = {"detail": "Insufficient Xp",
                         'status': request.user.user_status.hint_powerup}
-                logging(self.request.user)
+                logging(request.user)
                 return Response(resp, status=200)
 
 
@@ -231,7 +195,7 @@ class PowerupSkipView(APIView):
             request.user.user_status.accept_close_answer = False
 
             request.user.save()
-            logging(self.request.user)
+            logging(request.user)
             resp = {'question_id': request.user.question_id,
                     'status': request.user.user_status.skip_powerup,
                     'xp': request.user.xp}
@@ -239,7 +203,7 @@ class PowerupSkipView(APIView):
         else:
             resp = {"detail": "Insufficient Xp",
                     "status": request.user.user_status.skip_powerup}
-            logging(self.request.user)
+            logging(request.user)
             return Response(resp, status=200)
 
 
@@ -248,90 +212,53 @@ class PowerupCloseAnswerView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
+    @transaction.atomic
     def post(self, *args, **kwargs):
+        user = self.request.user
+        if user.xp >= ACCEPT_CLOSE_XP:
 
-        if self.request.user.xp >= ACCEPT_CLOSE_XP:
+            user.user_status.accept_close_answer = True
 
-            self.request.user.user_status.accept_close_answer = True
-
-            ques_id = self.request.user.question_id
+            ques_id = user.question_id
             user_answer = args[0].data['answer']
             question = get_object_or_404(Question, order=int(ques_id))
 
-            if (self._isCloseAnswer(question, user_answer) or
-                    self._isAnswer(question, user_answer)):
-                question_solves = question.solves
+            if is_correct_answer(question, user_answer) or is_close_answer(question, user_answer):
 
-                # If user takes up both ( Close answer powerup and hint )
-                if self.request.user.user_status.hint_used:
-                    if question_solves >= 0 and question_solves <= 10:
-                        self.request.user.points += 100 - HINT_COST
-                    elif question_solves > 10 and question_solves <= 20:
-                        self.request.user.points += 90 - HINT_COST
-                    elif question_solves > 20 and question_solves <= 30:
-                        self.request.user.points += 85 - HINT_COST
-                    elif question_solves > 30:
-                        self.request.user.points += 75 - HINT_COST
-                    self.request.user.user_status.hint_used = False
-                else:
-                    if question_solves <= 10:
-                        self.request.user.points += 100
-                    elif question_solves > 10 and question_solves <= 20:
-                        self.request.user.points += 90
-                    elif question_solves > 20 and question_solves <= 30:
-                        self.request.user.points += 85
-                    elif question_solves > 30:
-                        self.request.user.points += 75
+                user.points += calculate_points(question.solves, user.user_status.hint_used) - 10
 
-                question_solves += 1  # number of solves for the question
+                question.solves += 1  # number of solves for the question
                 question.save()
 
-                self.request.user.question_answered += 1
+                user.question_answered += 1
+                user.question_id += 1
+                user.question_answered += 1
+                user.xp -= ACCEPT_CLOSE_XP - 5
+
+                user.user_status.hint_used = False
+                user.user_status.hint_powerup = False
+                user.user_status.skip_powerup = False
+                user.user_status.accept_close_answer = False
+                user.user_status.last_answered_ts = datetime.now()
+
+                user.save()
+                resp = {'question_id': user.question_id,
+                        'xp': user.xp,
+                        'status': user.user_status.accept_close_answer,
+                        'answer': True}
+                logging(user)
+                return Response(resp, status=200)
             else:
                 response = {'close_answer': False,
                             'detail': "The answer isn't a close answer"}
-                logging(self.request.user)
+                logging(user)
                 return Response(response, status=200)
 
-            self.request.user.question_id += 1
-            self.request.user.question_answered += 1
-            self.request.user.xp -= ACCEPT_CLOSE_XP
-
-            self.request.user.user_status.hint_used = False
-            self.request.user.user_status.hint_powerup = False
-            self.request.user.user_status.skip_powerup = False
-            self.request.user.user_status.accept_close_answer = False
-            self.request.user.user_status.last_answered_ts = datetime.now()
-
-            self.request.user.save()
-            resp = {'question_id': self.request.user.question_id,
-                    'xp': self.request.user.xp,
-                    'status': self.request.user.user_status.accept_close_answer}
-            logging(self.request.user)
-            return Response(resp, status=200)
         else:
             resp = {"detail": "Insufficient Xp",
-                    "status": self.request.user.user_status.accept_close_answer}
-            logging(self.request.user)
+                    "status": user.user_status.accept_close_answer}
+            logging(user)
             return Response(resp, status=200)
-
-    def _isCloseAnswer(self, question, answer):
-        decoded_list = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x: x.lower(), decoded_list):
-            return True
-        return False
-
-    def _isAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isValid(self, user_response):
-        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) is None:
-            return True
-        return False
 
 
 class LeaderBoardView(generics.ListAPIView):
@@ -354,11 +281,14 @@ class XpTimeGeneration(APIView):
 
     def get(self, request, *args, **kwargs):
         resp = {}
-        elapsed_time = (
-            timezone.now() - request.user.user_status.first_timestamp
-        ).total_seconds()
-        next_time = elapsed_time + (3600 - (elapsed_time % 3600))
-        resp['time_left'] = next_time - elapsed_time
+        if request.user.user_status.first_timestamp:
+            elapsed_time = (
+                timezone.localtime(timezone.now()) - request.user.user_status.first_timestamp
+            ).total_seconds()
+            next_time = elapsed_time + (3600 - (elapsed_time % 3600))
+            resp['time_left'] = next_time - elapsed_time
+        else:
+            resp['time_left'] = None
         return Response(resp)
 
 
@@ -370,7 +300,8 @@ class IndividualLevelStoryView(generics.RetrieveAPIView):
     lookup_field = 'order'
 
     def get_object(self):
-        story_get = get_object_or_404(Question, order=self.request.user.question_id)
+        user = self.request.user
+        story_get = get_object_or_404(Question, order=user.question_id)
         return story_get
 
 
@@ -382,7 +313,8 @@ class CompleteLevelStoryView(generics.ListAPIView):
     lookup_field = 'order'
 
     def get_queryset(self):
-        story_get = Question.objects.filter(order__range=(1, self.request.user.question_id))
+        user = self.request.user
+        story_get = Question.objects.filter(order__range=(1, user.question_id)).order_by('-id')
         return story_get
 
 
