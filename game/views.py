@@ -314,7 +314,7 @@ class CompleteLevelStoryView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        story_get = Question.objects.filter(order__range=(1, user.question_id))
+        story_get = Question.objects.filter(order__range=(1, user.question_id)).order_by('-id')
         return story_get
 
 
