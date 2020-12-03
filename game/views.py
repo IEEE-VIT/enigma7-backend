@@ -10,8 +10,7 @@ from .models import Question
 from users.models import User
 from .logging import logging
 from .helpers import (
-    calculate_points, is_close_answer, is_correct_answer,
-    is_valid_answer, return_decoded_list
+    calculate_points, is_close_answer, is_correct_answer, is_valid_answer
 )
 
 from rest_framework import generics
@@ -21,18 +20,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
-import re
 from datetime import datetime
 import json
 import os
 
 
-CORRECT_POINTS = 10
-HINT_COST = 5
-
 HINT_XP = 50
-SKIP_XP = 100
-ACCEPT_CLOSE_XP = 75
+SKIP_XP = 75
+ACCEPT_CLOSE_XP = 100
 
 
 class Questionview(generics.RetrieveAPIView):
@@ -81,17 +76,16 @@ class Answerview(APIView):
 
         if is_valid_answer(user_answer):
             if is_correct_answer(question, user_answer):
-                question_solves = question.solves
+                user.points += calculate_points(question.solves, user.user_status.hint_used)
 
-                user.points += calculate_points(question_solves, user.user_status.hint_used)
-
-                question_solves += 1  # number of solves for the question
+                question.solves += 1  # number of solves for the question
                 question.save()
 
                 user.question_answered += 1
 
                 user.user_status.hint_used = False
                 user.question_id += 1
+                user.xp += 5
                 user.user_status.hint_powerup = False
                 user.user_status.skip_powerup = False
                 user.user_status.accept_close_answer = False
@@ -121,24 +115,6 @@ class Answerview(APIView):
             user.save()
             resp = {"detail": "Special characters are not allowed"}
             return Response(resp, status=400)
-
-    def _isAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isCloseAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isValid(self, user_response):
-        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) is None:
-            return True
-        return False
 
 
 class Hintview(APIView):
@@ -249,17 +225,15 @@ class PowerupCloseAnswerView(APIView):
 
             if is_correct_answer(question, user_answer) or is_close_answer(question, user_answer):
 
-                question_solves = question.solves
+                user.points += calculate_points(question.solves, user.user_status.hint_used) - 10
 
-                user.points += calculate_points(question_solves, user.user_status.hint_used)
-
-                question_solves += 1  # number of solves for the question
+                question.solves += 1  # number of solves for the question
                 question.save()
 
                 user.question_answered += 1
                 user.question_id += 1
                 user.question_answered += 1
-                user.xp -= ACCEPT_CLOSE_XP
+                user.xp -= ACCEPT_CLOSE_XP - 5
 
                 user.user_status.hint_used = False
                 user.user_status.hint_powerup = False
@@ -285,24 +259,6 @@ class PowerupCloseAnswerView(APIView):
                     "status": user.user_status.accept_close_answer}
             logging(user)
             return Response(resp, status=200)
-
-    def _isCloseAnswer(self, question, answer):
-        decoded_list = return_decoded_list(question.close_answers)
-        if answer.lower() in map(lambda x: x.lower(), decoded_list):
-            return True
-        return False
-
-    def _isAnswer(self, question, answer):
-        decoded_answers = return_decoded_list(question.answer)
-        if answer.lower() in map(lambda x: x.lower(), decoded_answers):
-            return True
-        return False
-
-    def _isValid(self, user_response):
-        string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
-        if string_check.search(user_response) is None:
-            return True
-        return False
 
 
 class LeaderBoardView(generics.ListAPIView):
@@ -358,7 +314,7 @@ class CompleteLevelStoryView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        story_get = Question.objects.filter(order__range=(1, user.question_id))
+        story_get = Question.objects.filter(order__range=(1, user.question_id)).order_by('-id')
         return story_get
 
 
