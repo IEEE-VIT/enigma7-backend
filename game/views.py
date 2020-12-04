@@ -85,11 +85,14 @@ class Answerview(APIView):
 
                 user.user_status.hint_used = False
                 user.question_id += 1
-                user.xp += 5
                 user.user_status.hint_powerup = False
                 user.user_status.skip_powerup = False
                 user.user_status.accept_close_answer = False
                 user.user_status.last_answered_ts = time
+                if user.xp <= 95:
+                    user.xp += 5
+                elif 95 < user.xp < 100:
+                    user.xp = 100
 
                 user.save()
                 logging(user)

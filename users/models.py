@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
 from .managers import UserManager
 
 
@@ -11,7 +12,8 @@ class User(AbstractUser):
     no_of_hints_used = models.IntegerField(default=0)
     no_of_attempts = models.IntegerField(default=0)
     question_id = models.IntegerField(default=1)
-    xp = models.IntegerField(default=0, null=False, blank=False)
+    xp = models.IntegerField(default=0, null=False, blank=False,
+                             validators=[MinValueValidator(0), MaxValueValidator(100)])
     objects = UserManager()
 
     EMAIL_FIELD = 'email'
