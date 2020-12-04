@@ -62,7 +62,7 @@ class Answerview(APIView):
         time = timezone.localtime(timezone.now())
         if user.no_of_attempts == 0:
             schedule, _ = IntervalSchedule.objects.get_or_create(
-                every=2, period=IntervalSchedule.MINUTES
+                every=60, period=IntervalSchedule.MINUTES
             )
             PeriodicTask.objects.create(
                 interval=schedule, name=f"XP Gen for user {user.id}",
@@ -317,7 +317,7 @@ class CompleteLevelStoryView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        story_get = Question.objects.filter(order__range=(1, user.question_id)).order_by('-order')
+        story_get = Question.objects.filter(order__range=(1, user.question_id)).order_by('order')
         return story_get
 
 

@@ -9,7 +9,7 @@ urlpatterns = [
     path('auth/google/', GoogleLogin.as_view()),
     url(r'^auth/apple/$', AppleLogin.as_view()),
     path('me/edit/', views.edit_username),
-    # path('me/', views.user_detail_view),
+    path('me/', views.user_detail_view),
     path('logout/', LogoutView.as_view()),
     path('outreach/', views.user_outreach),
     path('exists/', views.username_exists),
