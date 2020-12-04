@@ -47,6 +47,6 @@ class StoryLevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = (
-            "id",
+            "order",
             "question_story",
         )
