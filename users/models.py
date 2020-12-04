@@ -51,6 +51,7 @@ class Logging(models.Model):
     hint_powerup = models.BooleanField(default=False)
     skip_powerup = models.BooleanField(default=False)
     accept_close_answer = models.BooleanField(default=False)
+    answer = models.CharField(default='', max_length=255)
 
     def __str__(self):
         return self.user.username

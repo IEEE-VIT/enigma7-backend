@@ -2,7 +2,7 @@ from django.utils import timezone
 from users.models import Logging
 
 
-def logging(user):
+def logging(user, answer):
     current_time = timezone.localtime(timezone.now())
     log_obj = Logging(
         user=user,
@@ -15,7 +15,8 @@ def logging(user):
         hint_used=user.user_status.hint_used,
         hint_powerup=user.user_status.hint_powerup,
         skip_powerup=user.user_status.skip_powerup,
-        accept_close_answer=user.user_status.accept_close_answer
+        accept_close_answer=user.user_status.accept_close_answer,
+        answer=answer
     )
 
     log_obj.save()
