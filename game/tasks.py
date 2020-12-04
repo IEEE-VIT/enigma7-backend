@@ -24,6 +24,6 @@ def increase_user_xp(**kwargs):
                     return f"Increased XP of user {user.id} from {old_xp} to 100."
                 else:
                     return f"User {user.id} has {old_xp}, which is more than the cap."
-            except User.DoesNotExist:
+            except Exception:
                 pass
     return None
