@@ -95,7 +95,7 @@ class Answerview(APIView):
                     user.xp = 100
 
                 user.save()
-                logging(user)
+                logging(user, user_answer)
                 return Response(
                     {'answer': True, 'close_answer': False},
                     status=200
@@ -103,7 +103,7 @@ class Answerview(APIView):
 
             elif is_close_answer(question, user_answer):
                 user.save()
-                logging(user)
+                logging(user, user_answer)
                 resp = {'answer': False, 'close_answer': True,
                         'detail': "You are close to the answer !"}
                 return Response(resp, status=200)
@@ -112,7 +112,7 @@ class Answerview(APIView):
                 user.save()
                 resp = {'answer': False, 'close_answer': False,
                         'detail': "Keep Trying !"}  # need better wordings here
-                logging(user)
+                logging(user, user_answer)
                 return Response(resp, status=200)
         else:
             user.save()
@@ -139,7 +139,7 @@ class Hintview(APIView):
             request.user.save()
             serializer = HintSerializer(get_object_or_404(
                 Question, order=request.user.question_id))
-            logging(request.user)
+            logging(request.user, 'HINT TAKEN')
             return Response(serializer.data)
 
 
@@ -171,12 +171,12 @@ class PowerupHintView(APIView):
                     'status': request.user.user_status.hint_powerup,
                     'xp': request.user.xp}
                 )
-                logging(request.user)
+                logging(request.user, 'HINT POWERUP')
                 return Response(response, status=200)
             else:
                 resp = {"detail": "Insufficient Xp",
                         'status': request.user.user_status.hint_powerup}
-                logging(request.user)
+                logging(request.user, 'HINT POWERUP')
                 return Response(resp, status=200)
 
 
@@ -198,7 +198,7 @@ class PowerupSkipView(APIView):
             request.user.user_status.accept_close_answer = False
 
             request.user.save()
-            logging(request.user)
+            logging(request.user, 'SKIP POWERUP')
             resp = {'question_id': request.user.question_id,
                     'status': request.user.user_status.skip_powerup,
                     'xp': request.user.xp}
@@ -206,7 +206,7 @@ class PowerupSkipView(APIView):
         else:
             resp = {"detail": "Insufficient Xp",
                     "status": request.user.user_status.skip_powerup}
-            logging(request.user)
+            logging(request.user, 'SKIP POWERUP')
             return Response(resp, status=200)
 
 
@@ -249,12 +249,12 @@ class PowerupCloseAnswerView(APIView):
                         'xp': user.xp,
                         'status': user.user_status.accept_close_answer,
                         'answer': True}
-                logging(user)
+                logging(user, user_answer)
                 return Response(resp, status=200)
             else:
                 response = {'close_answer': False,
                             'detail': "The answer isn't a close answer"}
-                logging(user)
+                logging(user, user_answer)
                 return Response(response, status=200)
 
         else:
