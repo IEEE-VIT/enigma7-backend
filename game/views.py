@@ -30,18 +30,6 @@ SKIP_XP = 75
 ACCEPT_CLOSE_XP = 100
 
 
-class FeedbackQuestionView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [TokenAuthentication]
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
-    lookup_field = 'order'
-
-    def get_object(self, *args, **kwargs):
-        q_get = get_object_or_404(Question, order=user.question_id)
-        return q_get
-
-
 class Questionview(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
