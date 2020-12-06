@@ -37,7 +37,7 @@ def return_decoded_list(array):
 
 
 def is_valid_answer(answer):
-    string_check = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+    string_check = re.compile('[@_#$%^&*()<>?/\|}{~:]')
     if string_check.search(answer) is None:
         return True
     return False

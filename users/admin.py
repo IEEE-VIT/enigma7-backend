@@ -15,6 +15,6 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Logging)
 class LogginAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'answer', 'timestamp')
+    list_display = ('__str__', 'answer', 'question_id', 'timestamp')
     search_fields = ('user__username', 'answer')
     ordering = (('timestamp'), )

@@ -68,7 +68,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.apple',
 
     'corsheaders',
-    'django_celery_beat'
+    'django_celery_beat',
+    'celerybeat_status'
 ]
 
 SITE_ID = 1

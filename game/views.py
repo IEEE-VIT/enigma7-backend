@@ -30,6 +30,18 @@ SKIP_XP = 75
 ACCEPT_CLOSE_XP = 100
 
 
+class FeedbackQuestionView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+    lookup_field = 'order'
+
+    def get_object(self, *args, **kwargs):
+        q_get = get_object_or_404(Question, order=user.question_id)
+        return q_get
+
+
 class Questionview(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
@@ -38,8 +50,7 @@ class Questionview(generics.RetrieveAPIView):
     lookup_field = 'order'
 
     def get_object(self, *args, **kwargs):
-        user = self.request.user
-        q_get = get_object_or_404(Question, order=user.question_id)
+        q_get = get_object_or_404(Question, order=23)
         return q_get
 
 
@@ -176,7 +187,6 @@ class PowerupHintView(APIView):
             else:
                 resp = {"detail": "Insufficient Xp",
                         'status': request.user.user_status.hint_powerup}
-                logging(request.user, 'HINT POWERUP')
                 return Response(resp, status=200)
 
 
@@ -206,7 +216,6 @@ class PowerupSkipView(APIView):
         else:
             resp = {"detail": "Insufficient Xp",
                     "status": request.user.user_status.skip_powerup}
-            logging(request.user, 'SKIP POWERUP')
             return Response(resp, status=200)
 
 
@@ -235,7 +244,6 @@ class PowerupCloseAnswerView(APIView):
 
                 user.question_answered += 1
                 user.question_id += 1
-                user.question_answered += 1
                 user.xp -= ACCEPT_CLOSE_XP - 5
 
                 user.user_status.hint_used = False
@@ -260,7 +268,6 @@ class PowerupCloseAnswerView(APIView):
         else:
             resp = {"detail": "Insufficient Xp",
                     "status": user.user_status.accept_close_answer}
-            logging(user)
             return Response(resp, status=200)
 
 
