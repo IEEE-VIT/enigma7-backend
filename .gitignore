@@ -5,3 +5,4 @@ enigma7_backend/local_settings.py
 postgres-service-account.json
 celerybeat.pid
 staticfiles
+celerybeat-schedule
