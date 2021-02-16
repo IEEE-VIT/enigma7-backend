@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+    web:
+        build: .
+        command: bash -c "cd /code && python manage.py migrate --noinput && python manage.py runserver"
+        volumes:
+            - .:/code
+        depends_on:
+            - redis
+            - db
+
+    redis:
+        image: "redis:alpine"
+
+    celery:
+        build: .
+        command: celery -A enigma7_backend worker --loglevel=DEBUG
+        volumes:
+            - .:/code
+        depends_on:
+            - redis
+            - db
+
+    celery-beat:
+        build: .
+        command: celery -A enigma7_backend beat -l DEBUG --scheduler django_celery_beat.schedulers:DatabaseScheduler
+        volumes:
+            - .:/code
+        depends_on:
+            - redis
+            - db
+
+    db:
+        image: postgres:12.0-alpine
+        volumes:
+          - postgres_data:/var/lib/postgresql/data/
+        environment:
+          - POSTGRES_USER=postgres
+          - POSTGRES_PASSWORD=psqlpass123
+          - POSTGRES_DB=enigma7
