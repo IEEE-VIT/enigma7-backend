@@ -38,7 +38,8 @@ class Questionview(generics.RetrieveAPIView):
     lookup_field = 'order'
 
     def get_object(self, *args, **kwargs):
-        q_get = get_object_or_404(Question, order=23)
+        user = self.request.user
+        q_get = get_object_or_404(Question, order=user.question_id)
         return q_get
 
 
